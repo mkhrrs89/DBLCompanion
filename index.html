@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>DBL / BBGM Drama Companion</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #070b12;
+      --card: #111827;
+      --accent: #0ea5e9;
+      --accent-soft: rgba(14,165,233,0.16);
+      --accent-border: rgba(56,189,248,0.7);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --danger: #f97373;
+      --radius-lg: 14px;
+      --radius-sm: 8px;
+      --shadow-soft: 0 18px 40px rgba(0,0,0,0.45);
+      --shadow-sm: 0 8px 20px rgba(0,0,0,0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #020617 0, #020617 40%, #000 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 24px 12px;
+    }
+
+    .app-shell {
+      max-width: 1100px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 880px) {
+      .app-shell {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .panel {
+      background: linear-gradient(145deg, #020617, #020617 60%, #020617 100%);
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      box-shadow: var(--shadow-soft);
+      padding: 18px 18px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.12), transparent 55%);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .panel-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 1.5rem;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h1 span.logo-pill {
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.55);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+
+    .subtitle {
+      margin: 0 0 14px;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .field-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .field {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 4px;
+      color: var(--muted);
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 7px 9px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(148,163,184,0.4);
+      background: rgba(15,23,42,0.96);
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.12s ease, box-shadow 0.12s ease,
+        background 0.12s ease;
+    }
+
+    input[type="text"]::placeholder {
+      color: rgba(148, 163, 184, 0.7);
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(56,189,248,0.4);
+      background: rgba(15,23,42,1);
+    }
+
+    .toggle-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .pill-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      font-size: 0.8rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.45);
+      background: rgba(15,23,42,0.9);
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.13s ease;
+    }
+
+    .pill-toggle input {
+      display: none;
+    }
+
+    .pill-toggle span.dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      border: 1px solid rgba(148,163,184,0.8);
+      background: transparent;
+    }
+
+    .pill-toggle span.label {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+    }
+
+    .pill-toggle.active {
+      border-color: var(--accent-border);
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.22), rgba(15,23,42,0.9));
+      color: var(--text);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .pill-toggle.active span.dot {
+      background: var(--accent);
+      border-color: rgba(15,23,42,0.8);
+    }
+
+    .pill-toggle.drama.active {
+      border-color: rgba(248,113,113,0.7);
+      background: radial-gradient(circle at top left, rgba(248,113,113,0.25), rgba(15,23,42,0.95));
+    }
+
+    .flex-between {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 10px 0 6px;
+    }
+
+    .hint {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .hint strong {
+      color: #c4c9d4;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    button {
+      border: none;
+      outline: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+      position: relative;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 600;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.12s ease, opacity 0.12s ease;
+    }
+
+    .btn-primary {
+      background: radial-gradient(circle at top, #0ea5e9 0, #0369a1 40%, #0b1120 100%);
+      color: #ecfeff;
+      box-shadow: 0 10px 25px rgba(8,47,73,0.7);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 35px rgba(8,47,73,0.85);
+    }
+
+    .btn-secondary {
+      background: rgba(15,23,42,0.94);
+      color: var(--text);
+      border: 1px solid rgba(148,163,184,0.5);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(15,23,42,1);
+      box-shadow: 0 10px 24px rgba(15,23,42,0.8);
+      transform: translateY(-1px);
+    }
+
+    .btn-icon {
+      font-size: 1.1rem;
+    }
+
+    .btn-ghost {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.5);
+      background: rgba(15,23,42,0.95);
+      font-size: 0.78rem;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-ghost:hover {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      border: 1px solid rgba(148,163,184,0.5);
+      color: var(--muted);
+    }
+
+    .badge span.dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .results-title {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+    }
+
+    .results-title strong {
+      color: #e5e7eb;
+    }
+
+    .event-card {
+      background: radial-gradient(circle at top, rgba(15,23,42,1), #020617 65%, #000 100%);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(148,163,184,0.55);
+      padding: 12px 12px 10px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+    }
+
+    .event-chip {
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      margin-bottom: 4px;
+    }
+
+    .event-title {
+      margin: 0 0 4px;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .event-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .event-body {
+      font-size: 0.9rem;
+      line-height: 1.45;
+      color: #e5e7eb;
+      margin-bottom: 6px;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 2px;
+    }
+
+    .tag {
+      font-size: 0.72rem;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.96);
+      border: 1px solid rgba(148,163,184,0.5);
+      color: var(--muted);
+    }
+
+    .tag.drama {
+      border-color: rgba(248,113,113,0.7);
+      color: #fecaca;
+    }
+
+    .tag.wholesome {
+      border-color: rgba(34,197,94,0.7);
+      color: #bbf7d0;
+    }
+
+    .tag.business {
+      border-color: rgba(251,191,36,0.9);
+      color: #fef3c7;
+    }
+
+    .tag.era {
+      border-style: dashed;
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .event-footer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .copy-status {
+      font-size: 0.78rem;
+      color: var(--muted);
+      min-height: 1em;
+    }
+
+    .copy-status.ok {
+      color: #bbf7d0;
+    }
+
+    .copy-status.err {
+      color: #fecaca;
+    }
+
+    .season-stage-label {
+      font-size: 0.76rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .season-stage-label span {
+      color: #e5e7eb;
+    }
+
+    .empty-state {
+      font-size: 0.88rem;
+      color: var(--muted);
+      padding: 10px 0 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- LEFT: Controls -->
+    <div class="panel">
+      <div class="panel-inner">
+        <h1>
+          Drama Engine
+          <span class="logo-pill">DBL · BBGM · ZenGM</span>
+        </h1>
+        <p class="subtitle">
+          Generate era-aware off-court storylines, scandals, and human-interest beats
+          for your fictional league or Basketball GM save.
+        </p>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="year">Season Year</label>
+            <input id="year" type="number" placeholder="e.g. 1955" />
+          </div>
+          <div class="field">
+            <label for="team">Team</label>
+            <input id="team" type="text" placeholder="e.g. Brooklyn Kings" />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="star">Star Player</label>
+            <input id="star" type="text" placeholder="e.g. Howard Barber" />
+          </div>
+          <div class="field">
+            <label for="tone">Universe / Tone</label>
+            <select id="tone">
+              <option value="dbl">DBL Alt-History</option>
+              <option value="modern">Modern NBA-ish</option>
+              <option value="generic">Generic / Sandbox</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex-between">
+          <div class="section-label">Event Types</div>
+          <div class="hint">
+            Toggle what kind of trouble or vibes the generator can use.
+          </div>
+        </div>
+
+        <div class="toggle-group" id="typeToggles">
+          <label class="pill-toggle drama active" data-type="drama">
+            <input type="checkbox" checked />
+            <span class="dot"></span>
+            <span class="label">Drama</span>
+          </label>
+          <label class="pill-toggle active" data-type="wholesome">
+            <input type="checkbox" checked />
+            <span class="dot"></span>
+            <span class="label">Feel-Good</span>
+          </label>
+          <label class="pill-toggle active" data-type="business">
+            <input type="checkbox" checked />
+            <span class="dot"></span>
+            <span class="label">Business</span>
+          </label>
+          <label class="pill-toggle active" data-type="random">
+            <input type="checkbox" checked />
+            <span class="dot"></span>
+            <span class="label">Wildcard</span>
+          </label>
+        </div>
+
+        <div class="flex-between">
+          <div class="section-label">Generate</div>
+          <div class="hint">
+            <strong>Tip:</strong> Re-roll until something clicks, then tweak names.
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-primary" id="btnGenerate">
+            <span class="btn-icon">🎲</span>
+            <span>Single Event</span>
+          </button>
+          <button class="btn-secondary" id="btnSeasonArc">
+            <span class="btn-icon">📖</span>
+            <span>Season Arc (4 beats)</span>
+          </button>
+        </div>
+
+        <button class="btn-ghost" id="btnReset">
+          <span class="btn-icon">🧹</span>
+          <span>Reset fields</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Results -->
+    <div class="panel">
+      <div class="panel-inner">
+        <div class="results-header">
+          <div class="results-title">
+            Current Output · <strong id="outputCountLabel">None yet</strong>
+          </div>
+          <div class="badge">
+            <span class="dot"></span>
+            <span id="eraLabel">Era: —</span>
+          </div>
+        </div>
+
+        <div id="results">
+          <div class="empty-state">
+            Hit <strong>Single Event</strong> or <strong>Season Arc</strong> to
+            generate DBL-style flavor text. You can copy it right into your wiki,
+            BBGM note, or Discord write-up.
+          </div>
+        </div>
+
+        <div class="event-footer-row" style="margin-top: 10px;">
+          <div id="copyStatus" class="copy-status"></div>
+          <button class="btn-ghost" id="btnCopyAll">
+            <span class="btn-icon">📋</span>
+            <span>Copy all to clipboard</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Era + event library ----------------------------------------------
+
+    function pick(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function getEraBucket(year) {
+      if (!year || isNaN(year)) return { key: "generic", label: "Any era" };
+      year = Number(year);
+
+      if (year <= 1939) return { key: "pre40s", label: "1910s–1930s barnstorm era" };
+      if (year <= 1959) return { key: "fifties", label: "1950s early pro era" };
+      if (year <= 1979) return { key: "seventies", label: "1960s–70s expansion era" };
+      if (year <= 1999) return { key: "nineties", label: "1980s–90s TV/brand boom" };
+      if (year <= 2010) return { key: "twoKs", label: "2000s tabloid / reality era" };
+      if (year <= 2020) return { key: "tens", label: "2010s social media era" };
+      return { key: "twenties", label: "2020s load-management / player-empowerment era" };
+    }
+
+    // Each entry is { type, tone, title, body, tags }
+    // body can use {{team}} and {{star}} and {{year}}
+    const EVENT_LIBRARY = {
+      // Low-level, pre-real-NBA vibes: trains, mills, town gyms, wars.
+      pre40s: [
+        {
+          type: "wholesome",
+          tone: "dbl",
+          title: "Mill Shift to Midnight Tip-Off",
+          body:
+            "With factories refusing to adjust work hours, {{team}} quietly moves a home game to 11:30 p.m. so {{star}} and three other starters can clock out of the night shift and still make tip-off. The bleachers are filled with workers in dusty uniforms, turning the gym into a roaring after-hours rally.",
+          tags: ["scheduling oddity", "working-class roots", "home-court vibe"]
+        },
+        {
+          type: "drama",
+          tone: "dbl",
+          title: "Small-Town Rivalry Spills into the Stands",
+          body:
+            "A long-simmering feud between two local factories boils over when traveling {{team}} fans clash with hostile locals during a packed barnstorming stop. Security is basically two tired sheriffs and a high-school coach, leaving {{star}} to help escort teammates through a hail of shouted insults and tossed programs.",
+          tags: ["crowd trouble", "road hostility", "reputation"]
+        },
+        {
+          type: "business",
+          tone: "dbl",
+          title: "Train Ticket Sponsorship… Sort Of",
+          body:
+            "In {{year}}, nobody is throwing shoe money at {{team}}, but the local rail company agrees to comp third-class tickets if the club poses for a publicity photo on the platform. {{star}} ends up front-and-center in newspaper ads as 'the face of modern travel' despite not owning so much as a suitcase.",
+          tags: ["proto-sponsorship", "travel", "media"]
+        },
+        {
+          type: "random",
+          tone: "dbl",
+          title: "Gym Lightbulb Crisis",
+          body:
+            "Minutes before tip-off, half the bulbs in the tiny {{team}} home gym burn out at once. Rather than cancel, the league lets the game go on in a dim half-light. {{star}} jokes later that it was 'like playing in a cave' and blames a poor shooting night on not being able to see the rim.",
+          tags: ["arena quirk", "home-court legend"]
+        }
+      ],
+
+      // 1950s: trains/planes, early media, segregation, military service, mob owners.
+      fifties: [
+        {
+          type: "drama",
+          tone: "dbl",
+          title: "Red-Eye Road Trip Meltdown",
+          body:
+            "A brutal back-to-back leaves {{team}} stranded overnight when their connecting train is delayed by a snowstorm. Half the roster sleeps sitting up in a freezing station while {{star}} and a few veterans argue loudly with league officials over the schedule. By the time they arrive for the {{year}} showdown, tempers are running hotter than the arena lights.",
+          tags: ["travel chaos", "scheduling", "locker-room tension"]
+        },
+        {
+          type: "wholesome",
+          tone: "dbl",
+          title: "Free Clinic at the Neighborhood Playground",
+          body:
+            "On an off-day in {{year}}, {{star}} organizes an impromptu clinic at a cracked concrete playground near {{team}}’s home arena. Kids line up around the block to get a handshake and a jump-shot tip. The local paper catches the scene and runs a photo spread that makes {{star}} an instant community icon.",
+          tags: ["community", "public image", "fan connection"]
+        },
+        {
+          type: "business",
+          tone: "dbl",
+          title: "Suit-and-Tie Endorsement Deal",
+          body:
+            "A local clothier signs {{star}} to a modest endorsement: three custom suits and a tiny stipend in exchange for 'gentlemanly representation of the brand.' {{star}} shows up in a sharp new look that draws compliments from press and teammates — and quiet eye-rolls from veterans who still travel in work jackets.",
+          tags: ["early endorsement", "image", "locker-room teasing"]
+        },
+        {
+          type: "random",
+          tone: "dbl",
+          title: "Military Service Shadow",
+          body:
+            "As tensions overseas ripple through {{year}}, rumors swirl that {{star}} could be called into service at any moment. {{team}} quietly holds internal meetings about emergency contingency plans. No one speaks about it publicly, but reporters note a different kind of weight in {{star}}’s post-game interviews.",
+          tags: ["real-world context", "uncertainty", "mental load"]
+        }
+      ],
+
+      // 60s–70s: counterculture, nightlife, ABA-style chaos.
+      seventies: [
+        {
+          type: "drama",
+          tone: "generic",
+          title: "Nightclub Photo Sparks League Fine",
+          body:
+            "A blurry newspaper photo surfaces of {{star}} leaving a downtown nightclub at 3 a.m. the night before a national TV game. The league quietly issues a fine for 'conduct unbecoming,' while {{team}} scrambles to keep the focus on the court after a sluggish first half.",
+          tags: ["nightlife", "league discipline", "media"]
+        },
+        {
+          type: "wholesome",
+          tone: "generic",
+          title: "Peace-Sign Warmups",
+          body:
+            "In a subtle nod to the era, {{team}} takes the floor for a Sunday matinee in matching warm-ups stitched with small peace symbols. {{star}} leads the idea, insisting basketball should be 'a place where everybody sits in the same bleachers.' Some older fans grumble, but the younger crowd loves it.",
+          tags: ["culture", "team unity", "fans"]
+        },
+        {
+          type: "business",
+          tone: "generic",
+          title: "Rival League Flirtation",
+          body:
+            "A flashy upstart league sends scouts to {{team}}’s games and leaks that they’re preparing a massive offer for {{star}}. Negotiations become a season-long soap opera as rumors of colorful uniforms, wild rules, and fat contracts swirl around the locker room.",
+          tags: ["rival league", "contract drama", "uncertainty"]
+        },
+        {
+          type: "random",
+          tone: "generic",
+          title: "Music Takes Over the Locker Room",
+          body:
+            "A rookie brings a booming portable stereo on the road, turning the {{team}} locker room into a swirling mix of funk, rock, and soul. {{star}} initially hates it but eventually picks a walk-out song that becomes a low-key superstition for the whole {{year}} campaign.",
+          tags: ["culture shift", "rookie influence", "team rituals"]
+        }
+      ],
+
+      // 80s–90s: TV, sneakers, tabloids, early mega-stars.
+      nineties: [
+        {
+          type: "drama",
+          tone: "modern",
+          title: "Late-Night Hotel Incident",
+          body:
+            "Tabloid reporters camp outside the team hotel after a noise complaint draws security to {{star}}’s floor at 2 a.m. Details are fuzzy and the official line is 'miscommunication,' but cameras catch {{star}} looking exhausted and irritated at shootaround. The story dominates highlight shows for three days.",
+          tags: ["tabloids", "distraction", "media circus"]
+        },
+        {
+          type: "business",
+          tone: "modern",
+          title: "Signature Sneaker Tug-of-War",
+          body:
+            "Two shoe companies push competing offers at {{star}} after a breakout playoff run. {{team}}’s front office quietly worries the branding war will overshadow their small-market vibe. A leaked fax showing {{year}} sales projections sends fan message boards into a frenzy.",
+          tags: ["endorsements", "big money", "small-market tension"]
+        },
+        {
+          type: "wholesome",
+          tone: "modern",
+          title: "Make-A-Wish Game Day",
+          body:
+            "Before a crucial home game, {{star}} spends an hour with a young fan battling illness who dreamed of meeting the whole {{team}} roster. The child sits courtside in a custom jersey and joins the huddle pre-tip. When {{star}} drops a season-high performance, local news frames it as 'the wish that powered a miracle night.'",
+          tags: ["community", "heartwarming", "media spotlight"]
+        },
+        {
+          type: "random",
+          tone: "modern",
+          title: "Video Game Rating Controversy",
+          body:
+            "The new {{year}} basketball video game drops and assigns {{star}} what many consider a disrespectful rating. {{team}}’s locker room roasts the number relentlessly. In one post-game interview, {{star}} jokes that they’re 'on a season-long quest to patch the rating in real life.'",
+          tags: ["pop culture", "motivation", "locker-room jokes"]
+        }
+      ],
+
+      // 2000s: internet, leaks, reality TV.
+      twoKs: [
+        {
+          type: "drama",
+          tone: "modern",
+          title: "Anonymous Message Board Insider",
+          body:
+            "Throughout the {{year}} season, an anonymous message board account drops eerily accurate details about {{team}} practices and minor injuries. Fans assume it’s a staffer, but whispers inside the organization suggest a young player — maybe even {{star}} — is venting online.",
+          tags: ["internet era", "leaks", "trust issues"]
+        },
+        {
+          type: "business",
+          tone: "modern",
+          title: "Reality Show Cameo Offer",
+          body:
+            "A cable network approaches {{star}} about appearing on a reality show set in {{team}}’s city. The front office worries the cameras will follow into the locker room. After weeks of back-and-forth, they strike a deal: off-court footage only — but the distraction lingers all year.",
+          tags: ["media", "brand building", "distraction"]
+        },
+        {
+          type: "wholesome",
+          tone: "modern",
+          title: "Charity Three-Point Marathon",
+          body:
+            "{{star}} volunteers to shoot threes for charity, with local sponsors donating for every make over an hour. Teammates join in, turning the gym into a carnival atmosphere. The event raises more than anyone expected and becomes an annual {{team}} tradition.",
+          tags: ["charity", "fan engagement", "tradition"]
+        },
+        {
+          type: "random",
+          tone: "modern",
+          title: "Team Bus Prank War",
+          body:
+            "A harmless prank with icy water on the team bus turns into a month-long escalation of jokes and props. Coaches eventually step in after someone swaps the pre-game playlist with cartoon theme songs just as {{team}} arrives for a national TV matchup.",
+          tags: ["chemistry", "humor", "coach intervention"]
+        }
+      ],
+
+      // 2010s: social media, players as brands, superteams.
+      tens: [
+        {
+          type: "drama",
+          tone: "modern",
+          title: "Tweet Storm After Tough Loss",
+          body:
+            "Moments after a crushing defeat, {{star}} fires off a series of cryptic late-night posts about 'effort' and 'trust.' Screenshots flood feeds before anything can be deleted. When reporters ask about it the next morning, {{star}} insists they were 'just talking about life,' but everyone in {{team}}’s locker room knows better.",
+          tags: ["social media", "locker-room tension", "PR handling"]
+        },
+        {
+          type: "business",
+          tone: "modern",
+          title: "Player-Run Skills Camp Brand",
+          body:
+            "Leveraging a breakout {{year}} campaign, {{star}} quietly launches a branded off-season skills camp. The logo shares suspiciously similar colors with {{team}} jerseys. Front office execs debate whether to lean into the brand or keep team identity separate.",
+          tags: ["player brand", "off-season business", "identity"]
+        },
+        {
+          type: "wholesome",
+          tone: "modern",
+          title: "Viral Tunnel Moment",
+          body:
+            "A video of {{star}} greeting arena staff by name in the tunnel pre-game goes viral. Fans latch onto the clip as proof that {{team}} has 'the most grounded star in the league.' Merch sales spike for a week off the back of one candid camera angle.",
+          tags: ["viral moment", "public image", "fan love"]
+        },
+        {
+          type: "random",
+          tone: "modern",
+          title: "Superteam Rumors Swirl",
+          body:
+            "An off-hand remark on a podcast about 'linking up with some guys' sends rumor mills into overdrive. Fans draw up photoshop jerseys of {{star}} in half the league’s colors. {{team}} spends the next month answering questions about loyalty and long-term direction.",
+          tags: ["free agency", "speculation", "media noise"]
+        }
+      ],
+
+      // 2020s: load management, pandemic residue, player podcasts, NIL world, etc.
+      twenties: [
+        {
+          type: "drama",
+          tone: "modern",
+          title: "Load Management Backlash",
+          body:
+            "When {{team}} announces a rest night for {{star}} in {{year}} during a highly anticipated road game, opposing fans erupt online. Video of disappointed kids in {{star}} jerseys gains traction, forcing {{team}} to roll out a full-blown PR campaign explaining the sports-science logic behind the decision.",
+          tags: ["load management", "sports science", "fan optics"]
+        },
+        {
+          type: "business",
+          tone: "modern",
+          title: "Player-Hosted Podcast Bombshells",
+          body:
+            "{{star}} launches a podcast mid-season and, in episode two, casually reveals behind-the-scenes locker-room stories about {{team}} from earlier in the year. Clips go viral, and coaches quietly request an 'editing approval' process going forward.",
+          tags: ["player media", "storytelling", "leaks"]
+        },
+        {
+          type: "wholesome",
+          tone: "modern",
+          title: "City-Wide Mutual Aid Drive",
+          body:
+            "In the wake of a local crisis, {{star}} organizes a city-wide mutual aid drive, using their platform to connect fans with food banks and shelters. {{team}} follows their lead, matching donations and turning the arena concourse into a distribution hub.",
+          tags: ["community", "leadership", "real-world impact"]
+        },
+        {
+          type: "random",
+          tone: "modern",
+          title: "Headset Glitch on Live Broadcast",
+          body:
+            "During a wired-for-sound segment, a sideline mic accidentally picks up {{star}} and a teammate debating which arena has the worst visiting locker room. The clip makes the rounds all week, giving every opponent bulletin-board material.",
+          tags: ["broadcast", "unfiltered", "league chatter"]
+        }
+      ],
+
+      // Fallback/generic pool if nothing else matches.
+      generic: [
+        {
+          type: "drama",
+          tone: "generic",
+          title: "Practice Dust-Up",
+          body:
+            "A heated scrimmage turns into a shoving match between {{star}} and a frustrated teammate. Voices are raised, a ball gets spiked into the rafters, and {{team}} briefly shuts practice to cool everyone down. By the next game, both players insist they’re 'on the same page' — but fans start reading body language on every timeout huddle.",
+          tags: ["internal tension", "competitive fire", "chemistry watch"]
+        },
+        {
+          type: "wholesome",
+          tone: "generic",
+          title: "Birthday Surprise in the Locker Room",
+          body:
+            "Teammates ambush {{star}} with a cake, confetti, and an off-key rendition of 'Happy Birthday' after shootaround. The video winds up on team channels and becomes a fan-favorite glimpse into the lighter side of {{team}}’s season.",
+          tags: ["team bond", "locker-room", "fans"]
+        },
+        {
+          type: "business",
+          tone: "generic",
+          title: "Arena Naming Rights Shake-Up",
+          body:
+            "Mid-season, {{team}}’s home gets a new naming-rights partner, complete with a rebranded logo at center court. {{star}} jokingly stumbles over the new arena name in an interview, and the clip becomes a meme that even the sponsor leans into.",
+          tags: ["business", "branding", "fan culture"]
+        },
+        {
+          type: "random",
+          tone: "generic",
+          title: "Strange Pre-Game Superstition Emerges",
+          body:
+            "After a big win on a random Tuesday, {{team}} realizes they all ate from the same pre-game snack table. {{star}} insists they keep the exact same routine the next few games — down to the brand of chips — sparking a short-lived but beloved superstition among fans.",
+          tags: ["superstition", "routine", "fun"]
+        }
+      ]
+    };
+
+    function getPool(year, tone, allowedTypes) {
+      const era = getEraBucket(year);
+      const pools = [];
+
+      function pushEvents(key) {
+        if (EVENT_LIBRARY[key]) pools.push(...EVENT_LIBRARY[key]);
+      }
+
+      // Era-specific
+      pushEvents(era.key);
+      // Fallback
+      pushEvents("generic");
+
+      return pools.filter(ev => allowedTypes.includes(ev.type) &&
+        (tone === "generic" || ev.tone === tone || ev.tone === "generic"));
+    }
+
+    // --- UI wiring ---------------------------------------------------------
+
+    const yearInput = document.getElementById("year");
+    const teamInput = document.getElementById("team");
+    const starInput = document.getElementById("star");
+    const toneSelect = document.getElementById("tone");
+    const togglesRoot = document.getElementById("typeToggles");
+    const btnGenerate = document.getElementById("btnGenerate");
+    const btnSeasonArc = document.getElementById("btnSeasonArc");
+    const btnReset = document.getElementById("btnReset");
+    const btnCopyAll = document.getElementById("btnCopyAll");
+    const resultsEl = document.getElementById("results");
+    const eraLabelEl = document.getElementById("eraLabel");
+    const outputCountLabel = document.getElementById("outputCountLabel");
+    const copyStatusEl = document.getElementById("copyStatus");
+
+    function getSelectedTypes() {
+      const labels = togglesRoot.querySelectorAll(".pill-toggle");
+      const types = [];
+      labels.forEach(label => {
+        if (label.classList.contains("active")) {
+          types.push(label.dataset.type);
+        }
+      });
+      return types.length ? types : ["random"];
+    }
+
+    function toggleFromLabel(label) {
+      label.classList.toggle("active");
+      const checkbox = label.querySelector("input");
+      checkbox.checked = label.classList.contains("active");
+      persistState();
+    }
+
+    togglesRoot.addEventListener("click", (e) => {
+      const label = e.target.closest(".pill-toggle");
+      if (!label) return;
+      toggleFromLabel(label);
+    });
+
+    function formatEvent(ev, year, team, star, stageLabel = null, index = 0) {
+      const safeYear = year || "Year ?";
+      const safeTeam = team || "the club";
+      const safeStar = star || "their star player";
+
+      const body = ev.body
+        .replace(/{{year}}/g, safeYear)
+        .replace(/{{team}}/g, safeTeam)
+        .replace(/{{star}}/g, safeStar);
+
+      const tags = ev.tags || [];
+
+      const stageHtml = stageLabel
+        ? `<div class="season-stage-label">Season Beat <span>${stageLabel}</span></div>`
+        : "";
+
+      const tagHtml = tags.map(t => {
+        const lower = t.toLowerCase();
+        let cls = "tag";
+        if (lower.includes("drama") || lower.includes("tension") || lower.includes("backlash")) {
+          cls += " drama";
+        } else if (lower.includes("wholesome") || lower.includes("community") || lower.includes("heartwarming")) {
+          cls += " wholesome";
+        } else if (lower.includes("business") || lower.includes("contract") || lower.includes("brand")) {
+          cls += " business";
+        }
+        return `<span class="${cls}">${t}</span>`;
+      }).join("");
+
+      return `
+        <article class="event-card">
+          ${stageHtml}
+          <div class="event-chip">${safeYear} · ${safeTeam}</div>
+          <h2 class="event-title">${ev.title}</h2>
+          <div class="event-meta">Focus: ${safeStar}</div>
+          <div class="event-body">${body}</div>
+          <div class="tag-row">
+            ${tagHtml}
+          </div>
+        </article>
+      `;
+    }
+
+    function updateEraLabel(year) {
+      const bucket = getEraBucket(year);
+      eraLabelEl.textContent = `Era: ${bucket.label}`;
+    }
+
+    function renderSingleEvent() {
+      const year = yearInput.value.trim();
+      const team = teamInput.value.trim();
+      const star = starInput.value.trim();
+      const tone = toneSelect.value;
+      const types = getSelectedTypes();
+      const pool = getPool(year, tone, types);
+
+      if (!pool.length) {
+        resultsEl.innerHTML = `
+          <div class="empty-state">
+            No events matched your filters (tone + types) for this era just yet.
+            Try enabling more event types or switching the universe tone.
+          </div>
+        `;
+        outputCountLabel.textContent = "0 events";
+        return;
+      }
+
+      const ev = pick(pool);
+      resultsEl.innerHTML = formatEvent(ev, year, team, star);
+      outputCountLabel.textContent = "1 event";
+      updateEraLabel(year);
+      persistState();
+      clearCopyStatus();
+    }
+
+    function renderSeasonArc() {
+      const year = yearInput.value.trim();
+      const team = teamInput.value.trim();
+      const star = starInput.value.trim();
+      const tone = toneSelect.value;
+      const types = getSelectedTypes();
+      const pool = getPool(year, tone, types);
+
+      if (!pool.length) {
+        resultsEl.innerHTML = `
+          <div class="empty-state">
+            No events matched your filters (tone + types) for this era just yet.
+            Try enabling more event types or switching the universe tone.
+          </div>
+        `;
+        outputCountLabel.textContent = "0 events";
+        return;
+      }
+
+      const stages = [
+        "Off-Season Spark",
+        "Early-Season Vibes",
+        "Midseason Turning Point",
+        "Playoff Fallout"
+      ];
+
+      let html = "";
+      for (let i = 0; i < stages.length; i++) {
+        const ev = pick(pool);
+        html += formatEvent(ev, year, team, star, stages[i], i);
+      }
+
+      resultsEl.innerHTML = html;
+      outputCountLabel.textContent = "4 events";
+      updateEraLabel(year);
+      persistState();
+      clearCopyStatus();
+    }
+
+    function resetFields() {
+      yearInput.value = "";
+      teamInput.value = "";
+      starInput.value = "";
+      toneSelect.value = "dbl";
+      // Turn all toggles on
+      togglesRoot.querySelectorAll(".pill-toggle").forEach(label => {
+        label.classList.add("active");
+        const checkbox = label.querySelector("input");
+        if (checkbox) checkbox.checked = true;
+      });
+      updateEraLabel(null);
+      resultsEl.innerHTML = `
+        <div class="empty-state">
+          Fields reset. Pick a season year, team, and star — then let the drama engine
+          cook up something for your universe.
+        </div>
+      `;
+      outputCountLabel.textContent = "None yet";
+      clearCopyStatus();
+      persistState();
+    }
+
+    function copyAllToClipboard() {
+      const textPieces = [];
+      const year = yearInput.value.trim() || "Year ?";
+      const team = teamInput.value.trim() || "Team";
+      const star = starInput.value.trim() || "Star Player";
+
+      textPieces.push(`${year} · ${team}`);
+      textPieces.push(`Focus: ${star}`);
+      textPieces.push("");
+
+      const cards = resultsEl.querySelectorAll(".event-card");
+      if (!cards.length) {
+        setCopyStatus("No events to copy yet.", false);
+        return;
+      }
+
+      cards.forEach((card, idx) => {
+        const title = card.querySelector(".event-title")?.textContent ?? "";
+        const meta = card.querySelector(".event-meta")?.textContent ?? "";
+        const body = card.querySelector(".event-body")?.textContent ?? "";
+        const tags = Array.from(card.querySelectorAll(".tag")).map(t => t.textContent.trim());
+
+        if (idx > 0) textPieces.push("— — —");
+        const stageLabel = card.querySelector(".season-stage-label")?.textContent ?? null;
+        if (stageLabel) textPieces.push(stageLabel.trim());
+        textPieces.push(title);
+        if (meta) textPieces.push(meta);
+        textPieces.push(body);
+        if (tags.length) textPieces.push("Tags: " + tags.join(", "));
+      });
+
+      const text = textPieces.join("\n");
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+          .then(() => setCopyStatus("Copied all events to clipboard.", true))
+          .catch(() => setCopyStatus("Couldn't access clipboard — you can still select and copy manually.", false));
+      } else {
+        setCopyStatus("Clipboard API not available — select and copy manually.", false);
+      }
+    }
+
+    function setCopyStatus(msg, ok) {
+      copyStatusEl.textContent = msg;
+      copyStatusEl.classList.toggle("ok", !!ok);
+      copyStatusEl.classList.toggle("err", !ok);
+    }
+
+    function clearCopyStatus() {
+      copyStatusEl.textContent = "";
+      copyStatusEl.classList.remove("ok", "err");
+    }
+
+    // --- Persistence (localStorage) ----------------------------------------
+
+    const STORAGE_KEY = "dblDramaEngineState";
+
+    function persistState() {
+      const state = {
+        year: yearInput.value.trim(),
+        team: teamInput.value.trim(),
+        star: starInput.value.trim(),
+        tone: toneSelect.value,
+        types: getSelectedTypes()
+      };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    function restoreState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const state = JSON.parse(raw);
+        if (state.year) yearInput.value = state.year;
+        if (state.team) teamInput.value = state.team;
+        if (state.star) starInput.value = state.star;
+        if (state.tone) toneSelect.value = state.tone;
+
+        // Apply toggle state
+        if (Array.isArray(state.types) && state.types.length) {
+          togglesRoot.querySelectorAll(".pill-toggle").forEach(label => {
+            const type = label.dataset.type;
+            const active = state.types.includes(type);
+            label.classList.toggle("active", active);
+            const checkbox = label.querySelector("input");
+            if (checkbox) checkbox.checked = active;
+          });
+        }
+        updateEraLabel(state.year || null);
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    // --- Event listeners ---------------------------------------------------
+
+    btnGenerate.addEventListener("click", renderSingleEvent);
+    btnSeasonArc.addEventListener("click", renderSeasonArc);
+    btnReset.addEventListener("click", resetFields);
+    btnCopyAll.addEventListener("click", copyAllToClipboard);
+
+    // Persist on key changes
+    [yearInput, teamInput, starInput, toneSelect].forEach(el => {
+      el.addEventListener("change", () => {
+        if (el === yearInput) updateEraLabel(yearInput.value.trim());
+        persistState();
+      });
+      el.addEventListener("blur", persistState);
+    });
+
+    // Initialize
+    restoreState();
+    if (!yearInput.value) {
+      const currentYear = new Date().getFullYear();
+      yearInput.value = currentYear;
+      updateEraLabel(currentYear);
+    }
+  </script>
+</body>
+</html>
