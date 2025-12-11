@@ -941,8 +941,8 @@
     const teamInput = document.getElementById("team");
     const starInput = document.getElementById("star");
     const toneSelect = document.getElementById("tone");
-    const togglesRoot = document.getElementById("typeToggles");
     const btnGenerate = document.getElementById("btnGenerate");
+    const togglesRoot = document.getElementById("typeToggles");
     const btnSeasonArc = document.getElementById("btnSeasonArc");
     const btnReset = document.getElementById("btnReset");
     const btnCopyAll = document.getElementById("btnCopyAll");
@@ -962,25 +962,25 @@
       return types.length ? types : ["random"];
     }
 
-    function setToggleState(label, active) {
-      label.classList.toggle("active", active);
-      const checkbox = label.querySelector("input");
-      if (checkbox) checkbox.checked = active;
-      label.setAttribute("aria-pressed", active ? "true" : "false");
-      label.setAttribute("aria-checked", active ? "true" : "false");
-    }
+// turn pill on/off visually and logically
+function setToggleState(label, active) {
+  label.classList.toggle("active", active);
+  label.setAttribute("aria-pressed", active ? "true" : "false");
+}
 
-    function toggleFromLabel(label) {
-      const nextState = !label.classList.contains("active");
-      setToggleState(label, nextState);
-      persistState();
-    }
+// handles a user click
+function toggleFromLabel(label) {
+  const next = !label.classList.contains("active");
+  setToggleState(label, next);
+  persistState(); // optional, if you want saving
+}
 
-    togglesRoot.addEventListener("click", (e) => {
-      const label = e.target.closest(".pill-toggle");
-      if (!label) return;
-      toggleFromLabel(label);
-    });
+
+togglesRoot.addEventListener("click", (e) => {
+  const label = e.target.closest(".pill-toggle");
+  if (!label) return;
+  toggleFromLabel(label);
+});
 
     togglesRoot.addEventListener("keydown", (e) => {
       if (e.key !== "Enter" && e.key !== " ") return;
@@ -1254,4 +1254,5 @@
   </script>
 </body>
 </html>
+
 
