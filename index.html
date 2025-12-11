@@ -170,6 +170,10 @@
       opacity: 0.72;
     }
 
+    .pill-toggle input {
+      display: none;
+    }
+
     .pill-toggle span.dot {
       width: 9px;
       height: 9px;
@@ -502,22 +506,26 @@
         </div>
 
         <div class="toggle-group" id="typeToggles">
-          <button type="button" class="pill-toggle drama active" data-type="drama" aria-pressed="true">
+          <label class="pill-toggle drama active" data-type="drama" role="button" aria-pressed="true" tabindex="0">
+            <input type="checkbox" checked />
             <span class="dot"></span>
             <span class="label">Drama</span>
-          </button>
-          <button type="button" class="pill-toggle active" data-type="wholesome" aria-pressed="true">
+          </label>
+          <label class="pill-toggle active" data-type="wholesome" role="button" aria-pressed="true" tabindex="0">
+            <input type="checkbox" checked />
             <span class="dot"></span>
             <span class="label">Feel-Good</span>
-          </button>
-          <button type="button" class="pill-toggle active" data-type="business" aria-pressed="true">
+          </label>
+          <label class="pill-toggle active" data-type="business" role="button" aria-pressed="true" tabindex="0">
+            <input type="checkbox" checked />
             <span class="dot"></span>
             <span class="label">Business</span>
-          </button>
-          <button type="button" class="pill-toggle active" data-type="random" aria-pressed="true">
+          </label>
+          <label class="pill-toggle active" data-type="random" role="button" aria-pressed="true" tabindex="0">
+            <input type="checkbox" checked />
             <span class="dot"></span>
             <span class="label">Wildcard</span>
-          </button>
+          </label>
         </div>
 
         <div class="flex-between">
@@ -933,21 +941,32 @@
       return types.length ? types : ["random"];
     }
 
-    function setToggleState(toggleEl, active) {
-      toggleEl.classList.toggle("active", active);
-      toggleEl.setAttribute("aria-pressed", active ? "true" : "false");
+    function setToggleState(label, active) {
+      label.classList.toggle("active", active);
+      const checkbox = label.querySelector("input");
+      if (checkbox) checkbox.checked = active;
+      label.setAttribute("aria-pressed", active ? "true" : "false");
+      label.setAttribute("aria-checked", active ? "true" : "false");
     }
 
-    function toggleFromLabel(toggleEl) {
-      const nextState = !toggleEl.classList.contains("active");
-      setToggleState(toggleEl, nextState);
+    function toggleFromLabel(label) {
+      const nextState = !label.classList.contains("active");
+      setToggleState(label, nextState);
       persistState();
     }
 
     togglesRoot.addEventListener("click", (e) => {
-      const toggleEl = e.target.closest(".pill-toggle");
-      if (!toggleEl) return;
-      toggleFromLabel(toggleEl);
+      const label = e.target.closest(".pill-toggle");
+      if (!label) return;
+      toggleFromLabel(label);
+    });
+
+    togglesRoot.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const label = e.target.closest(".pill-toggle");
+      if (!label) return;
+      e.preventDefault();
+      toggleFromLabel(label);
     });
 
     function formatEvent(ev, year, team, star, stageLabel = null, index = 0) {
