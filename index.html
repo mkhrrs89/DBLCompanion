@@ -167,10 +167,7 @@
       cursor: pointer;
       user-select: none;
       transition: all 0.13s ease;
-    }
-
-    .pill-toggle input {
-      display: none;
+      opacity: 0.72;
     }
 
     .pill-toggle span.dot {
@@ -191,11 +188,17 @@
       background: radial-gradient(circle at top left, rgba(56,189,248,0.22), rgba(15,23,42,0.9));
       color: var(--text);
       box-shadow: var(--shadow-sm);
+      opacity: 1;
     }
 
     .pill-toggle.active span.dot {
       background: var(--accent);
       border-color: rgba(15,23,42,0.8);
+    }
+
+    .pill-toggle:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
     }
 
     .pill-toggle.drama.active {
@@ -499,26 +502,22 @@
         </div>
 
         <div class="toggle-group" id="typeToggles">
-          <label class="pill-toggle drama active" data-type="drama">
-            <input type="checkbox" checked />
+          <button type="button" class="pill-toggle drama active" data-type="drama" aria-pressed="true">
             <span class="dot"></span>
             <span class="label">Drama</span>
-          </label>
-          <label class="pill-toggle active" data-type="wholesome">
-            <input type="checkbox" checked />
+          </button>
+          <button type="button" class="pill-toggle active" data-type="wholesome" aria-pressed="true">
             <span class="dot"></span>
             <span class="label">Feel-Good</span>
-          </label>
-          <label class="pill-toggle active" data-type="business">
-            <input type="checkbox" checked />
+          </button>
+          <button type="button" class="pill-toggle active" data-type="business" aria-pressed="true">
             <span class="dot"></span>
             <span class="label">Business</span>
-          </label>
-          <label class="pill-toggle active" data-type="random">
-            <input type="checkbox" checked />
+          </button>
+          <button type="button" class="pill-toggle active" data-type="random" aria-pressed="true">
             <span class="dot"></span>
             <span class="label">Wildcard</span>
-          </label>
+          </button>
         </div>
 
         <div class="flex-between">
@@ -934,17 +933,21 @@
       return types.length ? types : ["random"];
     }
 
-    function toggleFromLabel(label) {
-      label.classList.toggle("active");
-      const checkbox = label.querySelector("input");
-      checkbox.checked = label.classList.contains("active");
+    function setToggleState(toggleEl, active) {
+      toggleEl.classList.toggle("active", active);
+      toggleEl.setAttribute("aria-pressed", active ? "true" : "false");
+    }
+
+    function toggleFromLabel(toggleEl) {
+      const nextState = !toggleEl.classList.contains("active");
+      setToggleState(toggleEl, nextState);
       persistState();
     }
 
     togglesRoot.addEventListener("click", (e) => {
-      const label = e.target.closest(".pill-toggle");
-      if (!label) return;
-      toggleFromLabel(label);
+      const toggleEl = e.target.closest(".pill-toggle");
+      if (!toggleEl) return;
+      toggleFromLabel(toggleEl);
     });
 
     function formatEvent(ev, year, team, star, stageLabel = null, index = 0) {
@@ -1171,9 +1174,12 @@
           togglesRoot.querySelectorAll(".pill-toggle").forEach(label => {
             const type = label.dataset.type;
             const active = state.types.includes(type);
-            label.classList.toggle("active", active);
-            const checkbox = label.querySelector("input");
-            if (checkbox) checkbox.checked = active;
+            setToggleState(label, active);
+          });
+        } else {
+          // Ensure initial aria state matches default toggles
+          togglesRoot.querySelectorAll(".pill-toggle").forEach(label => {
+            setToggleState(label, label.classList.contains("active"));
           });
         }
         updateEraLabel(state.year || null);
