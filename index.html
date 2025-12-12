@@ -227,12 +227,13 @@
   transform: translateY(-1px);
 }
 
-/* OFF state: blue pill */
+/* OFF state: clear pill */
 .pill-toggle:not(.active) {
-  background: linear-gradient(180deg, #fdfbf6, #f2ede3);
+  background: transparent;
   border-color: var(--edge);
-  color: var(--ink);
-  opacity: 0.96;
+  box-shadow: none;
+  transform: none;
+  opacity: 1;
 }
 
 /* Remove the old drama-only red style */
@@ -553,39 +554,15 @@
 
         <div class="toggle-group" id="typeToggles">
           <label class="pill-toggle drama active" data-type="drama" role="button" aria-pressed="true" tabindex="0">
-            <input type="checkbox" checked />
-            <span class="dot"></span>
-            <span class="state-icon" aria-hidden="true">
-              <span class="state-on">✔</span>
-              <span class="state-off">✕</span>
-            </span>
             <span class="label">Drama</span>
           </label>
           <label class="pill-toggle active" data-type="wholesome" role="button" aria-pressed="true" tabindex="0">
-            <input type="checkbox" checked />
-            <span class="dot"></span>
-            <span class="state-icon" aria-hidden="true">
-              <span class="state-on">✔</span>
-              <span class="state-off">✕</span>
-            </span>
             <span class="label">Feel-Good</span>
           </label>
           <label class="pill-toggle active" data-type="business" role="button" aria-pressed="true" tabindex="0">
-            <input type="checkbox" checked />
-            <span class="dot"></span>
-            <span class="state-icon" aria-hidden="true">
-              <span class="state-on">✔</span>
-              <span class="state-off">✕</span>
-            </span>
             <span class="label">Business</span>
           </label>
           <label class="pill-toggle active" data-type="random" role="button" aria-pressed="true" tabindex="0">
-            <input type="checkbox" checked />
-            <span class="dot"></span>
-            <span class="state-icon" aria-hidden="true">
-              <span class="state-on">✔</span>
-              <span class="state-off">✕</span>
-            </span>
             <span class="label">Wildcard</span>
           </label>
         </div>
@@ -984,6 +961,15 @@
     const toneSelect = document.getElementById("tone");
     const btnGenerate = document.getElementById("btnGenerate");
     const togglesRoot = document.getElementById("typeToggles");
+    togglesRoot.querySelectorAll(".pill-toggle").forEach(label => {
+      label.addEventListener("click", () => toggleFromLabel(label));
+
+      label.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        e.preventDefault();
+        toggleFromLabel(label);
+      });
+    });
     const btnSeasonArc = document.getElementById("btnSeasonArc");
     const btnReset = document.getElementById("btnReset");
     const btnCopyAll = document.getElementById("btnCopyAll");
@@ -1003,33 +989,18 @@
       return types.length ? types : ["random"];
     }
 
-// turn pill on/off visually and logically
-function setToggleState(label, active) {
-  label.classList.toggle("active", active);
-  label.setAttribute("aria-pressed", active ? "true" : "false");
-}
+    // turn pill on/off visually and logically
+    function setToggleState(label, active) {
+      label.classList.toggle("active", active);
+      label.setAttribute("aria-pressed", active ? "true" : "false");
+    }
 
-// handles a user click
-function toggleFromLabel(label) {
-  const next = !label.classList.contains("active");
-  setToggleState(label, next);
-  persistState(); // optional, if you want saving
-}
-
-
-togglesRoot.addEventListener("click", (e) => {
-  const label = e.target.closest(".pill-toggle");
-  if (!label) return;
-  toggleFromLabel(label);
-});
-
-    togglesRoot.addEventListener("keydown", (e) => {
-      if (e.key !== "Enter" && e.key !== " ") return;
-      const label = e.target.closest(".pill-toggle");
-      if (!label) return;
-      e.preventDefault();
-      toggleFromLabel(label);
-    });
+    // handles a user click
+    function toggleFromLabel(label) {
+      const next = !label.classList.contains("active");
+      setToggleState(label, next);
+      persistState();
+    }
 
     function formatEvent(ev, year, team, star, stageLabel = null, index = 0) {
       const safeYear = year || "Year ?";
@@ -1152,9 +1123,7 @@ togglesRoot.addEventListener("click", (e) => {
       toneSelect.value = "dbl";
       // Turn all toggles on
       togglesRoot.querySelectorAll(".pill-toggle").forEach(label => {
-        label.classList.add("active");
-        const checkbox = label.querySelector("input");
-        if (checkbox) checkbox.checked = true;
+        setToggleState(label, true);
       });
       updateEraLabel(null);
       resultsEl.innerHTML = `
