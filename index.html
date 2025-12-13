@@ -545,6 +545,21 @@
           </div>
         </div>
 
+        <div class="field-row">
+          <div class="field">
+            <label for="team2">Second Team (if needed)</label>
+            <input
+              id="team2"
+              type="text"
+              placeholder="e.g. Chicago Union"
+            />
+          </div>
+          <div class="field">
+            <label for="star2">Second Player (optional)</label>
+            <input id="star2" type="text" placeholder="e.g. Parker Lawson" />
+          </div>
+        </div>
+
         <div class="flex-between">
           <div class="section-label">Event Types</div>
           <div class="hint">
@@ -1054,6 +1069,8 @@
     const yearInput = document.getElementById("year");
     const teamInput = document.getElementById("team");
     const starInput = document.getElementById("star");
+    const team2Input = document.getElementById("team2");
+    const star2Input = document.getElementById("star2");
     const toneSelect = document.getElementById("tone");
     const btnGenerate = document.getElementById("btnGenerate");
     const togglesRoot = document.getElementById("typeToggles");
@@ -1098,15 +1115,36 @@
       persistState();
     }
 
-    function formatEvent(ev, year, team, star, stageLabel = null, index = 0) {
+    function formatEvent(
+      ev,
+      year,
+      team,
+      star,
+      team2,
+      star2,
+      stageLabel = null,
+      index = 0
+    ) {
       const safeYear = year || "Year ?";
       const safeTeam = team || "the club";
       const safeStar = star || "their star player";
+      const safeTeam2 = team2 || "the other side";
+      const safeStar2 = star2 || "a rival player";
+
+      const matchupLabel = team2 ? `${safeTeam} vs ${safeTeam2}` : safeTeam;
+      const focusParts = [];
+      if (star) focusParts.push(safeStar);
+      if (star2) focusParts.push(team2 ? `${safeStar2} (${safeTeam2})` : safeStar2);
+      const focusLabel = focusParts.length
+        ? focusParts.join(" vs ")
+        : safeStar;
 
       const body = ev.body
         .replace(/{{year}}/g, safeYear)
         .replace(/{{team}}/g, safeTeam)
-        .replace(/{{star}}/g, safeStar);
+        .replace(/{{team2}}/g, safeTeam2)
+        .replace(/{{star}}/g, safeStar)
+        .replace(/{{star2}}/g, safeStar2);
 
       const tags = ev.tags || [];
 
@@ -1130,9 +1168,9 @@
       return `
         <article class="event-card">
           ${stageHtml}
-          <div class="event-chip">${safeYear} · ${safeTeam}</div>
+          <div class="event-chip">${safeYear} · ${matchupLabel}</div>
           <h2 class="event-title">${ev.title}</h2>
-          <div class="event-meta">Focus: ${safeStar}</div>
+          <div class="event-meta">Focus: ${focusLabel}</div>
           <div class="event-body">${body}</div>
           <div class="tag-row">
             ${tagHtml}
@@ -1150,6 +1188,8 @@
       const year = yearInput.value.trim();
       const team = teamInput.value.trim();
       const star = starInput.value.trim();
+      const team2 = team2Input.value.trim();
+      const star2 = star2Input.value.trim();
       const tone = toneSelect.value;
       const types = getSelectedTypes();
       const pool = getPool(year, tone, types);
@@ -1166,7 +1206,7 @@
       }
 
       const ev = pick(pool);
-      resultsEl.innerHTML = formatEvent(ev, year, team, star);
+      resultsEl.innerHTML = formatEvent(ev, year, team, star, team2, star2);
       outputCountLabel.textContent = "1 event";
       updateEraLabel(year);
       persistState();
@@ -1177,6 +1217,8 @@
       const year = yearInput.value.trim();
       const team = teamInput.value.trim();
       const star = starInput.value.trim();
+      const team2 = team2Input.value.trim();
+      const star2 = star2Input.value.trim();
       const tone = toneSelect.value;
       const types = getSelectedTypes();
       const pool = getPool(year, tone, types);
@@ -1202,7 +1244,7 @@
       let html = "";
       for (let i = 0; i < stages.length; i++) {
         const ev = pick(pool);
-        html += formatEvent(ev, year, team, star, stages[i], i);
+        html += formatEvent(ev, year, team, star, team2, star2, stages[i], i);
       }
 
       resultsEl.innerHTML = html;
@@ -1216,6 +1258,8 @@
       yearInput.value = "";
       teamInput.value = "";
       starInput.value = "";
+      team2Input.value = "";
+      star2Input.value = "";
       toneSelect.value = "dbl";
       // Turn all toggles on
       togglesRoot.querySelectorAll(".pill-toggle").forEach(label => {
@@ -1238,9 +1282,21 @@
       const year = yearInput.value.trim() || "Year ?";
       const team = teamInput.value.trim() || "Team";
       const star = starInput.value.trim() || "Star Player";
+      const team2 = team2Input.value.trim();
+      const star2 = star2Input.value.trim();
+      const safeTeam2 = team2 || "Opponent";
+      const safeStar2 = star2 || "Rival Player";
 
-      textPieces.push(`${year} · ${team}`);
-      textPieces.push(`Focus: ${star}`);
+      const matchupLabel = team2 ? `${team} vs ${team2}` : team;
+      const focusParts = [];
+      if (starInput.value.trim()) focusParts.push(star);
+      if (star2Input.value.trim()) {
+        focusParts.push(team2 ? `${safeStar2} (${safeTeam2})` : safeStar2);
+      }
+      const focusLabel = focusParts.length ? focusParts.join(" vs ") : star;
+
+      textPieces.push(`${year} · ${matchupLabel}`);
+      textPieces.push(`Focus: ${focusLabel}`);
       textPieces.push("");
 
       const cards = resultsEl.querySelectorAll(".event-card");
@@ -1295,6 +1351,8 @@
         year: yearInput.value.trim(),
         team: teamInput.value.trim(),
         star: starInput.value.trim(),
+        team2: team2Input.value.trim(),
+        star2: star2Input.value.trim(),
         tone: toneSelect.value,
         types: getSelectedTypes()
       };
@@ -1313,6 +1371,8 @@
         if (state.year) yearInput.value = state.year;
         if (state.team) teamInput.value = state.team;
         if (state.star) starInput.value = state.star;
+        if (state.team2) team2Input.value = state.team2;
+        if (state.star2) star2Input.value = state.star2;
         if (state.tone) toneSelect.value = state.tone;
 
         // Apply toggle state
@@ -1342,7 +1402,7 @@
     btnCopyAll.addEventListener("click", copyAllToClipboard);
 
     // Persist on key changes
-    [yearInput, teamInput, starInput, toneSelect].forEach(el => {
+    [yearInput, teamInput, starInput, team2Input, star2Input, toneSelect].forEach(el => {
       el.addEventListener("change", () => {
         if (el === yearInput) updateEraLabel(yearInput.value.trim());
         persistState();
