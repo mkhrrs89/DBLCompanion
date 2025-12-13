@@ -144,6 +144,18 @@
       color: var(--muted);
     }
 
+    .checkbox-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.92rem;
+      color: var(--ink);
+    }
+
+    .checkbox-inline input {
+      width: auto;
+    }
+
     input[type="text"],
     input[type="number"],
     select {
@@ -560,6 +572,13 @@
           </div>
         </div>
 
+        <div class="field-row" style="align-items: center;">
+          <label class="checkbox-inline" for="sameTeamToggle">
+            <input id="sameTeamToggle" type="checkbox" />
+            Story between two players on the same team
+          </label>
+        </div>
+
         <div class="flex-between">
           <div class="section-label">Event Types</div>
           <div class="hint">
@@ -953,6 +972,14 @@
           tags: ["load management", "sports science", "fan optics"]
         },
         {
+          type: "drama",
+          tone: "modern",
+          title: "Podcast Co-Hosts Air It Out",
+          body:
+            "{{star}} and teammate {{star2}} co-host a popular team-run podcast, but a heated on-air debate about shot selection spills into headlines. Clips of {{star}} rolling their eyes at {{star2}} rack up views, and coaches order a brief media pause so the two can hash things out behind closed doors.",
+          tags: ["player media", "chemistry watch", "modern distraction"]
+        },
+        {
           type: "business",
           tone: "modern",
           title: "Player-Hosted Podcast Bombshells",
@@ -967,6 +994,14 @@
           body:
             "In the wake of a local crisis, {{star}} organizes a city-wide mutual aid drive, using their platform to connect fans with food banks and shelters. {{team}} follows their lead, matching donations and turning the arena concourse into a distribution hub.",
           tags: ["community", "leadership", "real-world impact"]
+        },
+        {
+          type: "wholesome",
+          tone: "modern",
+          title: "Dual Captain's Film Night",
+          body:
+            "With the locker room feeling scattered, {{star}} invites {{star2}} to co-lead a late-night film session for the rest of {{team}}. The two captains trade playful jabs about missed rotations, then unveil a joint accountability chart that the roster actually adopts.",
+          tags: ["leadership", "team unity", "teammate bond"]
         },
         {
           type: "random",
@@ -1095,6 +1130,7 @@
     const starInput = document.getElementById("star");
     const team2Input = document.getElementById("team2");
     const star2Input = document.getElementById("star2");
+    const sameTeamToggle = document.getElementById("sameTeamToggle");
     const toneSelect = document.getElementById("tone");
     const btnGenerate = document.getElementById("btnGenerate");
     const togglesRoot = document.getElementById("typeToggles");
@@ -1146,21 +1182,23 @@
       star,
       team2,
       star2,
+      sameTeam = false,
       stageLabel = null,
       index = 0
     ) {
       const safeYear = year || "Year ?";
       const safeTeam = team || "the club";
       const safeStar = star || "their star player";
-      const safeTeam2 = team2 || "the other side";
-      const safeStar2 = star2 || "a rival player";
+      const safeTeam2 = sameTeam ? safeTeam : (team2 || "the other side");
+      const safeStar2 = star2 || (sameTeam ? "a fellow teammate" : "a rival player");
 
-      const matchupLabel = team2 ? `${safeTeam} vs ${safeTeam2}` : safeTeam;
+      const matchupLabel = (!team2 || sameTeam) ? safeTeam : `${safeTeam} vs ${safeTeam2}`;
       const focusParts = [];
       if (star) focusParts.push(safeStar);
-      if (star2) focusParts.push(team2 ? `${safeStar2} (${safeTeam2})` : safeStar2);
+      if (star2) focusParts.push(team2 && !sameTeam ? `${safeStar2} (${safeTeam2})` : safeStar2);
+      const separator = sameTeam ? " & " : " vs ";
       const focusLabel = focusParts.length
-        ? focusParts.join(" vs ")
+        ? focusParts.join(separator)
         : safeStar;
 
       const body = ev.body
@@ -1214,6 +1252,7 @@
       const star = starInput.value.trim();
       const team2 = team2Input.value.trim();
       const star2 = star2Input.value.trim();
+      const sameTeam = sameTeamToggle.checked;
       const tone = toneSelect.value;
       const types = getSelectedTypes();
       const pool = getPool(year, tone, types);
@@ -1230,7 +1269,7 @@
       }
 
       const ev = pick(pool);
-      resultsEl.innerHTML = formatEvent(ev, year, team, star, team2, star2);
+      resultsEl.innerHTML = formatEvent(ev, year, team, star, team2, star2, sameTeam);
       outputCountLabel.textContent = "1 event";
       updateEraLabel(year);
       persistState();
@@ -1243,6 +1282,7 @@
       const star = starInput.value.trim();
       const team2 = team2Input.value.trim();
       const star2 = star2Input.value.trim();
+      const sameTeam = sameTeamToggle.checked;
       const tone = toneSelect.value;
       const types = getSelectedTypes();
       const pool = getPool(year, tone, types);
@@ -1268,7 +1308,7 @@
       let html = "";
       for (let i = 0; i < stages.length; i++) {
         const ev = pick(pool);
-        html += formatEvent(ev, year, team, star, team2, star2, stages[i], i);
+        html += formatEvent(ev, year, team, star, team2, star2, sameTeam, stages[i], i);
       }
 
       resultsEl.innerHTML = html;
@@ -1284,6 +1324,7 @@
       starInput.value = "";
       team2Input.value = "";
       star2Input.value = "";
+      sameTeamToggle.checked = false;
       toneSelect.value = "dbl";
       // Turn all toggles on
       togglesRoot.querySelectorAll(".pill-toggle").forEach(label => {
@@ -1308,16 +1349,17 @@
       const star = starInput.value.trim() || "Star Player";
       const team2 = team2Input.value.trim();
       const star2 = star2Input.value.trim();
-      const safeTeam2 = team2 || "Opponent";
-      const safeStar2 = star2 || "Rival Player";
+      const sameTeam = sameTeamToggle.checked;
+      const safeTeam2 = sameTeam ? team : (team2 || "Opponent");
+      const safeStar2 = star2 || (sameTeam ? "Teammate" : "Rival Player");
 
-      const matchupLabel = team2 ? `${team} vs ${team2}` : team;
+      const matchupLabel = (!team2 || sameTeam) ? team : `${team} vs ${team2}`;
       const focusParts = [];
       if (starInput.value.trim()) focusParts.push(star);
       if (star2Input.value.trim()) {
-        focusParts.push(team2 ? `${safeStar2} (${safeTeam2})` : safeStar2);
+        focusParts.push(team2 && !sameTeam ? `${safeStar2} (${safeTeam2})` : safeStar2);
       }
-      const focusLabel = focusParts.length ? focusParts.join(" vs ") : star;
+      const focusLabel = focusParts.length ? focusParts.join(sameTeam ? " & " : " vs ") : star;
 
       textPieces.push(`${year} · ${matchupLabel}`);
       textPieces.push(`Focus: ${focusLabel}`);
@@ -1377,6 +1419,7 @@
         star: starInput.value.trim(),
         team2: team2Input.value.trim(),
         star2: star2Input.value.trim(),
+        sameTeam: sameTeamToggle.checked,
         tone: toneSelect.value,
         types: getSelectedTypes()
       };
@@ -1397,6 +1440,7 @@
         if (state.star) starInput.value = state.star;
         if (state.team2) team2Input.value = state.team2;
         if (state.star2) star2Input.value = state.star2;
+        if (typeof state.sameTeam === "boolean") sameTeamToggle.checked = state.sameTeam;
         if (state.tone) toneSelect.value = state.tone;
 
         // Apply toggle state
@@ -1426,7 +1470,7 @@
     btnCopyAll.addEventListener("click", copyAllToClipboard);
 
     // Persist on key changes
-    [yearInput, teamInput, starInput, team2Input, star2Input, toneSelect].forEach(el => {
+    [yearInput, teamInput, starInput, team2Input, star2Input, toneSelect, sameTeamToggle].forEach(el => {
       el.addEventListener("change", () => {
         if (el === yearInput) updateEraLabel(yearInput.value.trim());
         persistState();
