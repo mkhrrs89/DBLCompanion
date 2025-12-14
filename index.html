@@ -1340,14 +1340,20 @@
     ) {
       const safeYear = year || "Year ?";
       const safeTeam = team || "the club";
-      const safeStar = star || "their star player";
       const safeTeam2 = sameTeam ? safeTeam : (team2 || "the other side");
-      const safeStar2 = star2 || (sameTeam ? "a fellow teammate" : "a rival player");
+      const noNamedPlayers = !star && !star2;
+      const safeStar = star || (noNamedPlayers ? safeTeam : "their star player");
+      const safeStar2 = star2 || (noNamedPlayers ? safeTeam2 : (sameTeam ? "a fellow teammate" : "a rival player"));
 
       const matchupLabel = (!team2 || sameTeam) ? safeTeam : `${safeTeam} vs ${safeTeam2}`;
       const focusParts = [];
-      if (star) focusParts.push(safeStar);
-      if (star2) focusParts.push(team2 && !sameTeam ? `${safeStar2} (${safeTeam2})` : safeStar2);
+      if (noNamedPlayers) {
+        focusParts.push(safeTeam);
+        if (!sameTeam && team2) focusParts.push(safeTeam2);
+      } else {
+        if (star) focusParts.push(safeStar);
+        if (star2) focusParts.push(team2 && !sameTeam ? `${safeStar2} (${safeTeam2})` : safeStar2);
+      }
       const separator = sameTeam ? " & " : " vs ";
       const focusLabel = focusParts.length
         ? focusParts.join(separator)
@@ -1498,20 +1504,27 @@
       const textPieces = [];
       const year = yearInput.value.trim() || "Year ?";
       const team = teamInput.value.trim() || "Team";
-      const star = starInput.value.trim() || "Star Player";
+      const star = starInput.value.trim();
       const team2 = team2Input.value.trim();
       const star2 = star2Input.value.trim();
       const sameTeam = sameTeamToggle.checked;
       const safeTeam2 = sameTeam ? team : (team2 || "Opponent");
-      const safeStar2 = star2 || (sameTeam ? "Teammate" : "Rival Player");
+      const noNamedPlayers = !star && !star2;
+      const safeStar = star || (noNamedPlayers ? team || "Team" : "Star Player");
+      const safeStar2 = star2 || (noNamedPlayers ? safeTeam2 : (sameTeam ? "Teammate" : "Rival Player"));
 
       const matchupLabel = (!team2 || sameTeam) ? team : `${team} vs ${team2}`;
       const focusParts = [];
-      if (starInput.value.trim()) focusParts.push(star);
-      if (star2Input.value.trim()) {
-        focusParts.push(team2 && !sameTeam ? `${safeStar2} (${safeTeam2})` : safeStar2);
+      if (noNamedPlayers) {
+        focusParts.push(team || "Team");
+        if (!sameTeam && team2) focusParts.push(safeTeam2);
+      } else {
+        if (starInput.value.trim()) focusParts.push(safeStar);
+        if (star2Input.value.trim()) {
+          focusParts.push(team2 && !sameTeam ? `${safeStar2} (${safeTeam2})` : safeStar2);
+        }
       }
-      const focusLabel = focusParts.length ? focusParts.join(sameTeam ? " & " : " vs ") : star;
+      const focusLabel = focusParts.length ? focusParts.join(sameTeam ? " & " : " vs ") : safeStar;
 
       textPieces.push(`${year} · ${matchupLabel}`);
       textPieces.push(`Focus: ${focusLabel}`);
