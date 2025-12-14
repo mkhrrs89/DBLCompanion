@@ -40,9 +40,81 @@
       color: var(--ink);
       min-height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: stretch;
       justify-content: center;
       padding: 24px 12px 36px;
+    }
+
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      width: 100%;
+      max-width: 1100px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .brand-title {
+      margin: 0;
+      letter-spacing: 0.08em;
+      font-size: 1rem;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .brand-subtitle {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .nav-tabs {
+      display: inline-flex;
+      gap: 6px;
+      background: #fdfbf6;
+      padding: 6px;
+      border-radius: 999px;
+      border: 1px solid var(--edge);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .nav-tab {
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 0.88rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: transparent;
+      color: var(--muted);
+      transition: all 0.12s ease;
+    }
+
+    .nav-tab.active {
+      background: linear-gradient(180deg, #f7eee1, #e8d9c4);
+      color: var(--ink);
+      border-color: var(--accent-border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .page {
+      display: none;
+      width: 100%;
+    }
+
+    .page.active {
+      display: block;
     }
 
     .app-shell {
@@ -515,144 +587,285 @@
       padding: 10px 0 4px;
       font-style: italic;
     }
+
+    .bank-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .bank-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .bank-title {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .bank-form {
+      align-items: flex-end;
+    }
+
+    .bank-list {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .bank-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--edge);
+      border-radius: var(--radius-sm);
+      background: #fdfbf6;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    }
+
+    .bank-item .label {
+      font-weight: 700;
+      color: var(--ink);
+      word-break: break-word;
+    }
+
+    .bank-item button {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid var(--edge);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .bank-item button:hover {
+      border-color: var(--danger);
+      background: rgba(176, 48, 48, 0.08);
+    }
+
+    .bank-empty {
+      margin-top: 6px;
+    }
   </style>
 </head>
 <body>
-  <div class="app-shell">
-    <!-- LEFT: Controls -->
+  <div class="top-nav">
+    <div class="brand">
+      <p class="brand-title">DBL / BBGM Drama Companion</p>
+      <p class="brand-subtitle">Story prompts, name banks, and era-aware vibes</p>
+    </div>
+    <div class="nav-tabs" role="tablist" aria-label="Navigation">
+      <button class="nav-tab active" data-page-target="generatorPage" role="tab" aria-selected="true">Generator</button>
+      <button class="nav-tab" data-page-target="bankPage" role="tab" aria-selected="false">Used Bank</button>
+    </div>
+  </div>
+
+  <div id="generatorPage" class="page active">
+    <div class="app-shell">
+      <!-- LEFT: Controls -->
+      <div class="panel">
+        <div class="panel-inner">
+          <h1>
+            Drama Engine
+            <span class="logo-pill">DBL · BBGM · ZenGM</span>
+          </h1>
+          <p class="subtitle">
+            Generate era-aware off-court storylines, scandals, and human-interest beats
+            for your fictional league or Basketball GM save.
+          </p>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="year">Season Year</label>
+              <input id="year" type="number" placeholder="e.g. 1955" />
+            </div>
+            <div class="field">
+              <label for="team">Team</label>
+              <input id="team" type="text" placeholder="e.g. Brooklyn Kings" />
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="star">Star Player</label>
+              <input id="star" type="text" placeholder="e.g. Howard Barber" />
+            </div>
+            <div class="field">
+              <label for="tone">Universe / Tone</label>
+              <select id="tone">
+                <option value="dbl">DBL Alt-History</option>
+                <option value="modern">Modern NBA-ish</option>
+                <option value="generic">Generic / Sandbox</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="team2">Second Team (if needed)</label>
+              <input
+                id="team2"
+                type="text"
+                placeholder="e.g. Chicago Union"
+              />
+            </div>
+            <div class="field">
+              <label for="star2">Second Player (optional)</label>
+              <input id="star2" type="text" placeholder="e.g. Parker Lawson" />
+            </div>
+          </div>
+
+          <div class="field-row" style="align-items: center;">
+            <label class="checkbox-inline" for="sameTeamToggle">
+              <input id="sameTeamToggle" type="checkbox" />
+              Story between two players on the same team
+            </label>
+          </div>
+
+          <div class="flex-between">
+            <div class="section-label">Event Types</div>
+            <div class="hint">
+              Toggle what kind of trouble or vibes the generator can use.
+            </div>
+          </div>
+
+          <div class="toggle-group" id="typeToggles">
+            <label class="pill-toggle drama active" data-type="drama" role="button" aria-pressed="true" tabindex="0">
+              <span class="label">Drama</span>
+            </label>
+            <label class="pill-toggle active" data-type="wholesome" role="button" aria-pressed="true" tabindex="0">
+              <span class="label">Feel-Good</span>
+            </label>
+            <label class="pill-toggle active" data-type="business" role="button" aria-pressed="true" tabindex="0">
+              <span class="label">Business</span>
+            </label>
+            <label class="pill-toggle active" data-type="random" role="button" aria-pressed="true" tabindex="0">
+              <span class="label">Wildcard</span>
+            </label>
+          </div>
+
+          <div class="flex-between">
+            <div class="section-label">Generate</div>
+            <div class="hint">
+              <strong>Tip:</strong> Re-roll until something clicks, then tweak names.
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn-primary" id="btnGenerate">
+              <span class="btn-icon">🎲</span>
+              <span>Single Event</span>
+            </button>
+            <button class="btn-secondary" id="btnSeasonArc">
+              <span class="btn-icon">📖</span>
+              <span>Season Arc (4 beats)</span>
+            </button>
+          </div>
+
+          <button class="btn-ghost" id="btnReset">
+            <span class="btn-icon">🧹</span>
+            <span>Reset fields</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- RIGHT: Results -->
+      <div class="panel">
+        <div class="panel-inner">
+          <div class="results-header">
+            <div class="results-title">
+              Current Output · <strong id="outputCountLabel">None yet</strong>
+            </div>
+            <div class="badge">
+              <span class="dot"></span>
+              <span id="eraLabel">Era: —</span>
+            </div>
+          </div>
+
+          <div id="results">
+            <div class="empty-state">
+              Hit <strong>Single Event</strong> or <strong>Season Arc</strong> to
+              generate DBL-style flavor text. You can copy it right into your wiki,
+              BBGM note, or Discord write-up.
+            </div>
+          </div>
+
+          <div class="event-footer-row" style="margin-top: 10px;">
+            <div id="copyStatus" class="copy-status"></div>
+            <button class="btn-ghost" id="btnCopyAll">
+              <span class="btn-icon">📋</span>
+              <span>Copy all to clipboard</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bankPage" class="page">
     <div class="panel">
       <div class="panel-inner">
         <h1>
-          Drama Engine
-          <span class="logo-pill">DBL · BBGM · ZenGM</span>
+          Used Names Bank
+          <span class="logo-pill">Players & Teams</span>
         </h1>
         <p class="subtitle">
-          Generate era-aware off-court storylines, scandals, and human-interest beats
-          for your fictional league or Basketball GM save.
+          Keep a running list of names you’ve already used so you can recycle,
+          retire, or reference them later. Everything stays in your browser via
+          local storage.
         </p>
 
-        <div class="field-row">
-          <div class="field">
-            <label for="year">Season Year</label>
-            <input id="year" type="number" placeholder="e.g. 1955" />
+        <div class="bank-grid">
+          <div>
+            <div class="bank-header">
+              <p class="bank-title">Players</p>
+              <span class="hint">Add anyone who’s appeared in your stories.</span>
+            </div>
+            <div class="field-row bank-form">
+              <div class="field">
+                <label for="newPlayer">Add player</label>
+                <input id="newPlayer" type="text" placeholder="e.g. Lenny Han" />
+              </div>
+              <button class="btn-primary" id="btnAddPlayer">
+                <span class="btn-icon">➕</span>
+                <span>Add</span>
+              </button>
+            </div>
+            <ul class="bank-list" id="playerList"></ul>
           </div>
-          <div class="field">
-            <label for="team">Team</label>
-            <input id="team" type="text" placeholder="e.g. Brooklyn Kings" />
+
+          <div>
+            <div class="bank-header">
+              <p class="bank-title">Teams</p>
+              <span class="hint">Track franchises you’ve used.</span>
+            </div>
+            <div class="field-row bank-form">
+              <div class="field">
+                <label for="newTeam">Add team</label>
+                <input id="newTeam" type="text" placeholder="e.g. Montreal Maroons" />
+              </div>
+              <button class="btn-primary" id="btnAddTeam">
+                <span class="btn-icon">➕</span>
+                <span>Add</span>
+              </button>
+            </div>
+            <ul class="bank-list" id="teamList"></ul>
           </div>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label for="star">Star Player</label>
-            <input id="star" type="text" placeholder="e.g. Howard Barber" />
-          </div>
-          <div class="field">
-            <label for="tone">Universe / Tone</label>
-            <select id="tone">
-              <option value="dbl">DBL Alt-History</option>
-              <option value="modern">Modern NBA-ish</option>
-              <option value="generic">Generic / Sandbox</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label for="team2">Second Team (if needed)</label>
-            <input
-              id="team2"
-              type="text"
-              placeholder="e.g. Chicago Union"
-            />
-          </div>
-          <div class="field">
-            <label for="star2">Second Player (optional)</label>
-            <input id="star2" type="text" placeholder="e.g. Parker Lawson" />
-          </div>
-        </div>
-
-        <div class="field-row" style="align-items: center;">
-          <label class="checkbox-inline" for="sameTeamToggle">
-            <input id="sameTeamToggle" type="checkbox" />
-            Story between two players on the same team
-          </label>
-        </div>
-
-        <div class="flex-between">
-          <div class="section-label">Event Types</div>
-          <div class="hint">
-            Toggle what kind of trouble or vibes the generator can use.
-          </div>
-        </div>
-
-        <div class="toggle-group" id="typeToggles">
-          <label class="pill-toggle drama active" data-type="drama" role="button" aria-pressed="true" tabindex="0">
-            <span class="label">Drama</span>
-          </label>
-          <label class="pill-toggle active" data-type="wholesome" role="button" aria-pressed="true" tabindex="0">
-            <span class="label">Feel-Good</span>
-          </label>
-          <label class="pill-toggle active" data-type="business" role="button" aria-pressed="true" tabindex="0">
-            <span class="label">Business</span>
-          </label>
-          <label class="pill-toggle active" data-type="random" role="button" aria-pressed="true" tabindex="0">
-            <span class="label">Wildcard</span>
-          </label>
-        </div>
-
-        <div class="flex-between">
-          <div class="section-label">Generate</div>
-          <div class="hint">
-            <strong>Tip:</strong> Re-roll until something clicks, then tweak names.
-          </div>
-        </div>
-
-        <div class="btn-row">
-          <button class="btn-primary" id="btnGenerate">
-            <span class="btn-icon">🎲</span>
-            <span>Single Event</span>
-          </button>
-          <button class="btn-secondary" id="btnSeasonArc">
-            <span class="btn-icon">📖</span>
-            <span>Season Arc (4 beats)</span>
-          </button>
-        </div>
-
-        <button class="btn-ghost" id="btnReset">
-          <span class="btn-icon">🧹</span>
-          <span>Reset fields</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- RIGHT: Results -->
-    <div class="panel">
-      <div class="panel-inner">
-        <div class="results-header">
-          <div class="results-title">
-            Current Output · <strong id="outputCountLabel">None yet</strong>
-          </div>
-          <div class="badge">
-            <span class="dot"></span>
-            <span id="eraLabel">Era: —</span>
-          </div>
-        </div>
-
-        <div id="results">
-          <div class="empty-state">
-            Hit <strong>Single Event</strong> or <strong>Season Arc</strong> to
-            generate DBL-style flavor text. You can copy it right into your wiki,
-            BBGM note, or Discord write-up.
-          </div>
-        </div>
-
-        <div class="event-footer-row" style="margin-top: 10px;">
-          <div id="copyStatus" class="copy-status"></div>
-          <button class="btn-ghost" id="btnCopyAll">
-            <span class="btn-icon">📋</span>
-            <span>Copy all to clipboard</span>
-          </button>
         </div>
       </div>
     </div>
@@ -1304,6 +1517,130 @@
       return pools.filter(ev => allowedTypes.includes(ev.type) &&
         (tone === "generic" || ev.tone === tone || ev.tone === "generic"));
     }
+
+    // --- Navigation + bank -----------------------------------------------
+
+    const navTabs = document.querySelectorAll(".nav-tab");
+    const pages = document.querySelectorAll(".page");
+
+    function showPage(targetId) {
+      pages.forEach(page => {
+        const isActive = page.id === targetId;
+        page.classList.toggle("active", isActive);
+      });
+
+      navTabs.forEach(tab => {
+        const active = tab.dataset.pageTarget === targetId;
+        tab.classList.toggle("active", active);
+        tab.setAttribute("aria-selected", active ? "true" : "false");
+      });
+    }
+
+    navTabs.forEach(tab => {
+      tab.addEventListener("click", () => showPage(tab.dataset.pageTarget));
+    });
+
+    const playerInput = document.getElementById("newPlayer");
+    const teamInputSimple = document.getElementById("newTeam");
+    const playerListEl = document.getElementById("playerList");
+    const teamListEl = document.getElementById("teamList");
+    const btnAddPlayer = document.getElementById("btnAddPlayer");
+    const btnAddTeam = document.getElementById("btnAddTeam");
+
+    const BANK_STORAGE_KEY = "dblUsedBank";
+
+    function loadBank() {
+      try {
+        const raw = localStorage.getItem(BANK_STORAGE_KEY);
+        if (!raw) return { players: [], teams: [] };
+        const parsed = JSON.parse(raw);
+        return {
+          players: Array.isArray(parsed.players) ? parsed.players : [],
+          teams: Array.isArray(parsed.teams) ? parsed.teams : []
+        };
+      } catch (e) {
+        return { players: [], teams: [] };
+      }
+    }
+
+    const bankState = loadBank();
+
+    function persistBank() {
+      try {
+        localStorage.setItem(BANK_STORAGE_KEY, JSON.stringify(bankState));
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    function renderBucket(listEl, items, emptyLabel, bucketKey) {
+      listEl.innerHTML = "";
+
+      if (!items.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state bank-empty";
+        empty.textContent = emptyLabel;
+        listEl.appendChild(empty);
+        return;
+      }
+
+      items.forEach((name, idx) => {
+        const li = document.createElement("li");
+        li.className = "bank-item";
+
+        const label = document.createElement("span");
+        label.className = "label";
+        label.textContent = name;
+
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.textContent = "Delete";
+        delBtn.addEventListener("click", () => {
+          bankState[bucketKey].splice(idx, 1);
+          persistBank();
+          renderBank();
+        });
+
+        li.appendChild(label);
+        li.appendChild(delBtn);
+        listEl.appendChild(li);
+      });
+    }
+
+    function renderBank() {
+      renderBucket(playerListEl, bankState.players, "No players saved yet.", "players");
+      renderBucket(teamListEl, bankState.teams, "No teams saved yet.", "teams");
+    }
+
+    function addName(inputEl, bucketKey) {
+      const value = (inputEl.value || "").trim();
+      if (!value) return;
+
+      const bucket = bankState[bucketKey];
+      const alreadyExists = bucket.some(entry => entry.toLowerCase() === value.toLowerCase());
+      if (!alreadyExists) {
+        bucket.push(value);
+        persistBank();
+        renderBank();
+      }
+      inputEl.value = "";
+      inputEl.focus();
+    }
+
+    [
+      [btnAddPlayer, playerInput, "players"],
+      [btnAddTeam, teamInputSimple, "teams"]
+    ].forEach(([btn, input, bucket]) => {
+      btn.addEventListener("click", () => addName(input, bucket));
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addName(input, bucket);
+        }
+      });
+    });
+
+    renderBank();
 
     // --- UI wiring ---------------------------------------------------------
 
