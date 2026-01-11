@@ -661,6 +661,21 @@
     .bank-empty {
       margin-top: 6px;
     }
+
+    .section-title {
+      margin: 0 0 6px;
+      font-size: 1.25rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+
+    .section-subtitle {
+      margin: 0 0 16px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -811,6 +826,86 @@
               <span class="btn-icon">📋</span>
               <span>Copy all to clipboard</span>
             </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-shell" style="margin-top: 18px;">
+      <div class="panel">
+        <div class="panel-inner">
+          <h2 class="section-title">Fight Watch</h2>
+          <p class="section-subtitle">
+            Roll through a stretch of games to see if tensions boil over. Most eras
+            stay quiet — and most rolls end with no fights, based on historical
+            league rates by era.
+          </p>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="fightYear">Season Year</label>
+              <input id="fightYear" type="number" placeholder="e.g. 1982" />
+            </div>
+            <div class="field">
+              <label for="fightGames">Number of Games</label>
+              <input id="fightGames" type="number" min="1" placeholder="e.g. 5" />
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="fightTeam">Team</label>
+              <input id="fightTeam" type="text" placeholder="e.g. Detroit Pioneers" />
+            </div>
+            <div class="field">
+              <label for="fightTeam2">Second Team (optional)</label>
+              <input id="fightTeam2" type="text" placeholder="e.g. Boston Minutemen" />
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="fightStar">Player 1 (optional)</label>
+              <input id="fightStar" type="text" placeholder="e.g. Vince Calder" />
+            </div>
+            <div class="field">
+              <label for="fightStar2">Player 2 (optional)</label>
+              <input id="fightStar2" type="text" placeholder="e.g. Ray Porter" />
+            </div>
+          </div>
+
+          <div class="field-row" style="align-items: center;">
+            <label class="checkbox-inline" for="fightSameTeamToggle">
+              <input id="fightSameTeamToggle" type="checkbox" />
+              Fight between teammates
+            </label>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn-primary" id="btnFightRoll">
+              <span class="btn-icon">🥊</span>
+              <span>Roll Fights</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-inner">
+          <div class="results-header">
+            <div class="results-title">
+              Fight Log · <strong id="fightOutputCount">None yet</strong>
+            </div>
+            <div class="badge">
+              <span class="dot"></span>
+              <span id="fightEraLabel">Era: —</span>
+            </div>
+          </div>
+          <div id="fightResults">
+            <div class="empty-state">
+              Enter a season year and number of games, then roll to see if a fight
+              broke out.
+            </div>
           </div>
         </div>
       </div>
@@ -1501,6 +1596,100 @@
       ]
     };
 
+    const FIGHT_LIBRARY = {
+      pre40s: [
+        {
+          title: "Two-Handed Shove Turns Into a Bench Warning",
+          body:
+            "A hard foul on {{star}} by {{team2}} sparks a brief shoving match. Officials separate the players quickly, but {{team}} is issued a stern warning about keeping tempers in check as the crowd buzzes about the rare flare-up in {{year}}."
+        },
+        {
+          title: "Whistles, Elbows, and a Handshake",
+          body:
+            "After a rugged first half, {{star}} and {{star2}} trade words near the scorer’s table. Teammates intervene before it escalates, and the two calm down enough to exchange a curt handshake at the horn."
+        }
+      ],
+      fifties: [
+        {
+          title: "Hard Hat Night Goes Too Far",
+          body:
+            "Physical play in the paint boils over when {{star}} is wrapped up on a fast break. A brief scrum breaks out before coaches escort players to their benches, and the league office quietly notes the incident."
+        },
+        {
+          title: "Rivalry Game Gets Testy",
+          body:
+            "The rivalry between {{team}} and {{team2}} reaches a boiling point when {{star2}} responds to a hard screen. A quick tangle of jerseys sends both benches to midcourt before officials regain control."
+        }
+      ],
+      seventies: [
+        {
+          title: "Flagrant Foul Sparks a Dust-Up",
+          body:
+            "A flagrant foul in the third quarter triggers a skirmish between {{star}} and {{star2}}. The officials hand out double technicals, and {{team}} vows to keep the game from spiraling any further."
+        },
+        {
+          title: "Broadcast Catches a Rare Scuffle",
+          body:
+            "National cameras catch {{star}} and {{star2}} in a brief tangle after a loose-ball dive. The crowd gasps, but cooler heads separate the two before anything more than a shove lands."
+        }
+      ],
+      nineties: [
+        {
+          title: "Quick Flare-Up, Quick Ejections",
+          body:
+            "A rare confrontation erupts after a hard foul by {{team2}}. Officials swiftly issue ejections, and both coaching staffs emphasize postgame that the incident will not define the series."
+        },
+        {
+          title: "Heated Moment Halts Play",
+          body:
+            "With tensions rising late, {{star}} and {{star2}} exchange shoves after a whistle. The arena quiets as officials sort through video review, and play resumes after a lengthy delay."
+        }
+      ],
+      twoKs: [
+        {
+          title: "Scuffle Ends Before It Starts",
+          body:
+            "A shoving match threatens to break out between {{star}} and {{star2}}, but teammates quickly pull them apart. The broadcast spends more time debating the moment than the moment itself."
+        },
+        {
+          title: "Techs, Stoppage, and a Warning",
+          body:
+            "A heated exchange between {{team}} and {{team2}} leads to double technicals and a long stoppage. Officials warn both benches that another flare-up will result in automatic ejections."
+        }
+      ],
+      tens: [
+        {
+          title: "Instant Replay Settles Things",
+          body:
+            "A heated exchange after a hard foul forces officials to stop play and consult replay. {{star}} and {{star2}} are whistled for double techs, and both teams spend the next timeout cooling down."
+        },
+        {
+          title: "Bench Spills to Midcourt",
+          body:
+            "After a physical sequence, several players step onto the floor from both benches. Coaches and officials corral everyone before anything escalates, but the league issues fines the next morning."
+        }
+      ],
+      twenties: [
+        {
+          title: "Broadcast Freeze-Frames the Moment",
+          body:
+            "A brief shove between {{star}} and {{star2}} triggers an extended broadcast breakdown, with every camera angle dissected on air. The league announces that the incident will be reviewed postgame, keeping the chatter going for days."
+        },
+        {
+          title: "Techs, Stoppage, and a Warning",
+          body:
+            "A heated exchange between {{team}} and {{team2}} leads to double technicals and a long stoppage. Officials warn both benches that another flare-up will result in automatic ejections."
+        }
+      ],
+      generic: [
+        {
+          title: "Tempers Flare After a Hard Foul",
+          body:
+            "A hard foul on {{star}} by {{team2}} turns into a short-lived scuffle. Officials step in quickly, and the game moves on after a few technicals."
+        }
+      ]
+    };
+
     function getPool(year, tone, allowedTypes) {
       const era = getEraBucket(year);
       const pools = [];
@@ -1516,6 +1705,29 @@
 
       return pools.filter(ev => allowedTypes.includes(ev.type) &&
         (tone === "generic" || ev.tone === tone || ev.tone === "generic"));
+    }
+
+    function getFightPool(year) {
+      const era = getEraBucket(year);
+      const pool = FIGHT_LIBRARY[era.key] || FIGHT_LIBRARY.generic || [];
+      return pool.length ? pool : FIGHT_LIBRARY.generic;
+    }
+
+    // Approximate per-game fight likelihoods by era (historical trend: more fights earlier).
+    const FIGHT_RATE_BY_ERA = {
+      pre40s: 0.08,
+      fifties: 0.06,
+      seventies: 0.05,
+      nineties: 0.035,
+      twoKs: 0.025,
+      tens: 0.018,
+      twenties: 0.012,
+      generic: 0.03
+    };
+
+    function getFightRate(year) {
+      const era = getEraBucket(year);
+      return FIGHT_RATE_BY_ERA[era.key] ?? FIGHT_RATE_BY_ERA.generic;
     }
 
     // --- Navigation + bank -----------------------------------------------
@@ -1670,6 +1882,18 @@
     const outputCountLabel = document.getElementById("outputCountLabel");
     const copyStatusEl = document.getElementById("copyStatus");
 
+    const fightYearInput = document.getElementById("fightYear");
+    const fightGamesInput = document.getElementById("fightGames");
+    const fightTeamInput = document.getElementById("fightTeam");
+    const fightTeam2Input = document.getElementById("fightTeam2");
+    const fightStarInput = document.getElementById("fightStar");
+    const fightStar2Input = document.getElementById("fightStar2");
+    const fightSameTeamToggle = document.getElementById("fightSameTeamToggle");
+    const btnFightRoll = document.getElementById("btnFightRoll");
+    const fightResultsEl = document.getElementById("fightResults");
+    const fightOutputCountLabel = document.getElementById("fightOutputCount");
+    const fightEraLabelEl = document.getElementById("fightEraLabel");
+
     function getSelectedTypes() {
       const labels = togglesRoot.querySelectorAll(".pill-toggle");
       const types = [];
@@ -1766,9 +1990,59 @@
       `;
     }
 
+    function formatFightEvent(ev, year, team, star, team2, star2, sameTeam = false, gameNumber = null) {
+      const safeYear = year || "Year ?";
+      const safeTeam = team || "the club";
+      const safeTeam2 = sameTeam ? safeTeam : (team2 || "the other side");
+      const noNamedPlayers = !star && !star2;
+      const safeStar = star || (noNamedPlayers ? safeTeam : "their star player");
+      const safeStar2 = star2 || (noNamedPlayers ? safeTeam2 : (sameTeam ? "a fellow teammate" : "a rival player"));
+
+      const matchupLabel = (!team2 || sameTeam) ? safeTeam : `${safeTeam} vs ${safeTeam2}`;
+      const focusParts = [];
+      if (noNamedPlayers) {
+        focusParts.push(safeTeam);
+        if (!sameTeam && team2) focusParts.push(safeTeam2);
+      } else {
+        if (star) focusParts.push(safeStar);
+        if (star2) focusParts.push(team2 && !sameTeam ? `${safeStar2} (${safeTeam2})` : safeStar2);
+      }
+      const separator = sameTeam ? " & " : " vs ";
+      const focusLabel = focusParts.length
+        ? focusParts.join(separator)
+        : safeStar;
+
+      const body = ev.body
+        .replace(/{{year}}/g, safeYear)
+        .replace(/{{team}}/g, safeTeam)
+        .replace(/{{team2}}/g, safeTeam2)
+        .replace(/{{star}}/g, safeStar)
+        .replace(/{{star2}}/g, safeStar2);
+
+      const gameLabel = gameNumber ? `Game ${gameNumber}` : "Game Log";
+
+      return `
+        <article class="event-card">
+          <div class="event-chip">${safeYear} · ${matchupLabel} · ${gameLabel}</div>
+          <h2 class="event-title">${ev.title}</h2>
+          <div class="event-meta">Focus: ${focusLabel}</div>
+          <div class="event-body">${body}</div>
+          <div class="tag-row">
+            <span class="tag drama">fight watch</span>
+            <span class="tag era">era-aware</span>
+          </div>
+        </article>
+      `;
+    }
+
     function updateEraLabel(year) {
       const bucket = getEraBucket(year);
       eraLabelEl.textContent = `Era: ${bucket.label}`;
+    }
+
+    function updateFightEraLabel(year) {
+      const bucket = getEraBucket(year);
+      fightEraLabelEl.textContent = `Era: ${bucket.label}`;
     }
 
     function renderSingleEvent() {
@@ -1841,6 +2115,58 @@
       updateEraLabel(year);
       persistState();
       clearCopyStatus();
+    }
+
+    function renderFightRoll() {
+      const year = fightYearInput.value.trim();
+      const games = Number(fightGamesInput.value);
+      const team = fightTeamInput.value.trim();
+      const team2 = fightTeam2Input.value.trim();
+      const star = fightStarInput.value.trim();
+      const star2 = fightStar2Input.value.trim();
+      const sameTeam = fightSameTeamToggle.checked;
+
+      if (!games || games < 1 || Number.isNaN(games)) {
+        fightResultsEl.innerHTML = `
+          <div class="empty-state">
+            Enter a valid number of games to roll the fight watch.
+          </div>
+        `;
+        fightOutputCountLabel.textContent = "0 events";
+        return;
+      }
+
+      const rate = getFightRate(year);
+      const pool = getFightPool(year);
+      const fightGames = [];
+
+      for (let i = 1; i <= games; i++) {
+        if (Math.random() < rate) {
+          fightGames.push(i);
+        }
+      }
+
+      if (!fightGames.length) {
+        fightResultsEl.innerHTML = `
+          <div class="empty-state">
+            No fights occurred across ${games} games. The league stays quiet and the
+            headlines move on.
+          </div>
+        `;
+        fightOutputCountLabel.textContent = "No fights";
+        updateFightEraLabel(year);
+        return;
+      }
+
+      let html = "";
+      fightGames.forEach((gameNumber) => {
+        const ev = pick(pool);
+        html += formatFightEvent(ev, year, team, star, team2, star2, sameTeam, gameNumber);
+      });
+
+      fightResultsEl.innerHTML = html;
+      fightOutputCountLabel.textContent = `${fightGames.length} fight${fightGames.length > 1 ? "s" : ""}`;
+      updateFightEraLabel(year);
     }
 
     function resetFields() {
@@ -2000,6 +2326,7 @@
     btnSeasonArc.addEventListener("click", renderSeasonArc);
     btnReset.addEventListener("click", resetFields);
     btnCopyAll.addEventListener("click", copyAllToClipboard);
+    btnFightRoll.addEventListener("click", renderFightRoll);
 
     // Persist on key changes
     [yearInput, teamInput, starInput, team2Input, star2Input, toneSelect, sameTeamToggle].forEach(el => {
@@ -2010,12 +2337,24 @@
       el.addEventListener("blur", persistState);
     });
 
+    [fightYearInput].forEach(el => {
+      el.addEventListener("change", () => {
+        updateFightEraLabel(fightYearInput.value.trim());
+      });
+    });
+
     // Initialize
     restoreState();
     if (!yearInput.value) {
       const currentYear = new Date().getFullYear();
       yearInput.value = currentYear;
       updateEraLabel(currentYear);
+    }
+
+    if (!fightYearInput.value) {
+      const currentYear = new Date().getFullYear();
+      fightYearInput.value = currentYear;
+      updateFightEraLabel(currentYear);
     }
   </script>
 </body>
