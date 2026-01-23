@@ -776,6 +776,13 @@
             </label>
           </div>
 
+          <div class="field-row" style="align-items: center;">
+            <label class="checkbox-inline" for="autoFillFromBank">
+              <input id="autoFillFromBank" type="checkbox" />
+              Auto-fill from the Used Bank when no names are entered
+            </label>
+          </div>
+
           <div class="flex-between">
             <div class="section-label">Event Types</div>
             <div class="hint">
@@ -2024,6 +2031,7 @@
     const team2Input = document.getElementById("team2");
     const star2Input = document.getElementById("star2");
     const sameTeamToggle = document.getElementById("sameTeamToggle");
+    const autoFillToggle = document.getElementById("autoFillFromBank");
     const toneSelect = document.getElementById("tone");
     const btnGenerate = document.getElementById("btnGenerate");
     const togglesRoot = document.getElementById("typeToggles");
@@ -2055,6 +2063,7 @@
     const fightResultsEl = document.getElementById("fightResults");
     const fightOutputCountLabel = document.getElementById("fightOutputCount");
     const fightEraLabelEl = document.getElementById("fightEraLabel");
+    let lastRenderContext = null;
 
     function getSelectedTypes() {
       const labels = togglesRoot.querySelectorAll(".pill-toggle");
@@ -2231,6 +2240,34 @@
       }
     }
 
+    function pickBankEntry(bucketKey, exclude = []) {
+      const entries = bankState[bucketKey] || [];
+      if (!entries.length) return "";
+      const excludeSet = new Set(exclude.filter(Boolean).map(entry => entry.toLowerCase()));
+      const filtered = entries.filter(entry => !excludeSet.has(entry.toLowerCase()));
+      const pool = filtered.length ? filtered : entries;
+      return pick(pool);
+    }
+
+    function resolveMainNames({ team, team2, star, star2, sameTeam }) {
+      const shouldAutoFill = !!autoFillToggle?.checked && !team && !team2 && !star && !star2;
+      if (!shouldAutoFill) {
+        return { team, team2, star, star2 };
+      }
+
+      const filledTeam = pickBankEntry("teams");
+      const filledTeam2 = sameTeam ? filledTeam : pickBankEntry("teams", [filledTeam]);
+      const filledStar = pickBankEntry("players");
+      const filledStar2 = pickBankEntry("players", [filledStar]);
+
+      return {
+        team: filledTeam,
+        team2: filledTeam2,
+        star: filledStar,
+        star2: filledStar2
+      };
+    }
+
     function renderSingleEvent() {
       const year = yearInput.value.trim();
       const team = teamInput.value.trim();
@@ -2241,6 +2278,7 @@
       const tone = toneSelect.value;
       const types = getSelectedTypes();
       const pool = getPool(year, tone, types);
+      const resolved = resolveMainNames({ team, team2, star, star2, sameTeam });
 
       captureMainPageNames();
 
@@ -2252,13 +2290,22 @@
           </div>
         `;
         outputCountLabel.textContent = "0 events";
+        lastRenderContext = null;
         return;
       }
 
       const ev = pick(pool);
-      resultsEl.innerHTML = formatEvent(ev, year, team, star, team2, star2, sameTeam);
+      resultsEl.innerHTML = formatEvent(ev, year, resolved.team, resolved.star, resolved.team2, resolved.star2, sameTeam);
       outputCountLabel.textContent = "1 event";
       updateEraLabel(year);
+      lastRenderContext = {
+        year,
+        team: resolved.team,
+        team2: resolved.team2,
+        star: resolved.star,
+        star2: resolved.star2,
+        sameTeam
+      };
       persistState();
       clearCopyStatus();
     }
@@ -2273,6 +2320,7 @@
       const tone = toneSelect.value;
       const types = getSelectedTypes();
       const pool = getPool(year, tone, types);
+      const resolved = resolveMainNames({ team, team2, star, star2, sameTeam });
 
       captureMainPageNames();
 
@@ -2284,6 +2332,7 @@
           </div>
         `;
         outputCountLabel.textContent = "0 events";
+        lastRenderContext = null;
         return;
       }
 
@@ -2297,12 +2346,20 @@
       let html = "";
       for (let i = 0; i < stages.length; i++) {
         const ev = pick(pool);
-        html += formatEvent(ev, year, team, star, team2, star2, sameTeam, stages[i], i);
+        html += formatEvent(ev, year, resolved.team, resolved.star, resolved.team2, resolved.star2, sameTeam, stages[i], i);
       }
 
       resultsEl.innerHTML = html;
       outputCountLabel.textContent = "4 events";
       updateEraLabel(year);
+      lastRenderContext = {
+        year,
+        team: resolved.team,
+        team2: resolved.team2,
+        star: resolved.star,
+        star2: resolved.star2,
+        sameTeam
+      };
       persistState();
       clearCopyStatus();
     }
@@ -2366,6 +2423,9 @@
       team2Input.value = "";
       star2Input.value = "";
       sameTeamToggle.checked = false;
+      if (autoFillToggle) {
+        autoFillToggle.checked = false;
+      }
       toneSelect.value = "dbl";
       // Turn all toggles on
       togglesRoot.querySelectorAll(".pill-toggle").forEach(label => {
@@ -2379,18 +2439,27 @@
         </div>
       `;
       outputCountLabel.textContent = "None yet";
+      lastRenderContext = null;
       clearCopyStatus();
       persistState();
     }
 
     function copyAllToClipboard() {
       const textPieces = [];
-      const year = yearInput.value.trim() || "Year ?";
-      const team = teamInput.value.trim() || "Team";
-      const star = starInput.value.trim();
-      const team2 = team2Input.value.trim();
-      const star2 = star2Input.value.trim();
-      const sameTeam = sameTeamToggle.checked;
+      const context = lastRenderContext || {
+        year: yearInput.value.trim(),
+        team: teamInput.value.trim(),
+        star: starInput.value.trim(),
+        team2: team2Input.value.trim(),
+        star2: star2Input.value.trim(),
+        sameTeam: sameTeamToggle.checked
+      };
+      const year = context.year || "Year ?";
+      const team = context.team || "Team";
+      const star = context.star;
+      const team2 = context.team2;
+      const star2 = context.star2;
+      const sameTeam = context.sameTeam;
       const safeTeam2 = sameTeam ? team : (team2 || "Opponent");
       const noNamedPlayers = !star && !star2;
       const safeStar = star || (noNamedPlayers ? team || "Team" : "Star Player");
@@ -2402,8 +2471,8 @@
         focusParts.push(team || "Team");
         if (!sameTeam && team2) focusParts.push(safeTeam2);
       } else {
-        if (starInput.value.trim()) focusParts.push(safeStar);
-        if (star2Input.value.trim()) {
+        if (star) focusParts.push(safeStar);
+        if (star2) {
           focusParts.push(team2 && !sameTeam ? `${safeStar2} (${safeTeam2})` : safeStar2);
         }
       }
@@ -2468,6 +2537,7 @@
         team2: team2Input.value.trim(),
         star2: star2Input.value.trim(),
         sameTeam: sameTeamToggle.checked,
+        autoFillFromBank: autoFillToggle?.checked ?? false,
         tone: toneSelect.value,
         types: getSelectedTypes()
       };
@@ -2489,6 +2559,9 @@
         if (state.team2) team2Input.value = state.team2;
         if (state.star2) star2Input.value = state.star2;
         if (typeof state.sameTeam === "boolean") sameTeamToggle.checked = state.sameTeam;
+        if (typeof state.autoFillFromBank === "boolean" && autoFillToggle) {
+          autoFillToggle.checked = state.autoFillFromBank;
+        }
         if (state.tone) toneSelect.value = state.tone;
 
         // Apply toggle state
@@ -2519,7 +2592,8 @@
     btnFightRoll.addEventListener("click", renderFightRoll);
 
     // Persist on key changes
-    [yearInput, teamInput, starInput, team2Input, star2Input, toneSelect, sameTeamToggle].forEach(el => {
+    [yearInput, teamInput, starInput, team2Input, star2Input, toneSelect, sameTeamToggle, autoFillToggle].forEach(el => {
+      if (!el) return;
       el.addEventListener("change", () => {
         if (el === yearInput) updateEraLabel(yearInput.value.trim());
         persistState();
