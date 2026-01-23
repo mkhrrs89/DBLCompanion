@@ -595,6 +595,30 @@
       margin-top: 12px;
     }
 
+    .bank-actions {
+      margin-top: 18px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .bank-actions .field-row {
+      align-items: center;
+      gap: 10px;
+    }
+
+    .bank-status {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .bank-status.ok {
+      color: #2b7a3d;
+    }
+
+    .bank-status.err {
+      color: var(--danger);
+    }
+
     .bank-header {
       display: flex;
       align-items: center;
@@ -961,6 +985,25 @@
             </div>
             <ul class="bank-list" id="teamList"></ul>
           </div>
+        </div>
+
+        <div class="bank-actions">
+          <div class="bank-header">
+            <p class="bank-title">Import / Export</p>
+            <span class="hint">Export a backup or import one from another browser. Imports only add new names.</span>
+          </div>
+          <div class="field-row">
+            <button class="btn-primary" id="btnExportBank">
+              <span class="btn-icon">📤</span>
+              <span>Export Used Bank</span>
+            </button>
+            <label class="btn-secondary" for="bankImportFile">
+              <span class="btn-icon">📥</span>
+              <span>Import Used Bank</span>
+            </label>
+            <input id="bankImportFile" type="file" accept="application/json" hidden />
+          </div>
+          <div id="bankStatus" class="bank-status" aria-live="polite"></div>
         </div>
       </div>
     </div>
@@ -1758,6 +1801,9 @@
     const teamListEl = document.getElementById("teamList");
     const btnAddPlayer = document.getElementById("btnAddPlayer");
     const btnAddTeam = document.getElementById("btnAddTeam");
+    const btnExportBank = document.getElementById("btnExportBank");
+    const bankImportFile = document.getElementById("bankImportFile");
+    const bankStatusEl = document.getElementById("bankStatus");
 
     const BANK_STORAGE_KEY = "dblUsedBank";
 
@@ -1783,6 +1829,33 @@
       } catch (e) {
         // ignore
       }
+    }
+
+    function setBankStatus(message, ok) {
+      if (!bankStatusEl) return;
+      bankStatusEl.textContent = message || "";
+      bankStatusEl.classList.toggle("ok", !!ok);
+      bankStatusEl.classList.toggle("err", ok === false);
+    }
+
+    function normalizeName(value) {
+      return (value || "").trim();
+    }
+
+    function addBankEntry(value, bucketKey, options = {}) {
+      const name = normalizeName(value);
+      if (!name) return false;
+      const bucket = bankState[bucketKey];
+      const exists = bucket.some(entry => entry.toLowerCase() === name.toLowerCase());
+      if (!exists) {
+        bucket.push(name);
+        persistBank();
+        if (!options.skipRender) {
+          renderBank();
+        }
+        return true;
+      }
+      return false;
     }
 
     function renderBucket(listEl, items, emptyLabel, bucketKey) {
@@ -1825,18 +1898,50 @@
     }
 
     function addName(inputEl, bucketKey) {
-      const value = (inputEl.value || "").trim();
-      if (!value) return;
-
-      const bucket = bankState[bucketKey];
-      const alreadyExists = bucket.some(entry => entry.toLowerCase() === value.toLowerCase());
-      if (!alreadyExists) {
-        bucket.push(value);
-        persistBank();
-        renderBank();
-      }
+      addBankEntry(inputEl.value, bucketKey);
       inputEl.value = "";
       inputEl.focus();
+    }
+
+    function mergeBankBucket(targetBucket, incomingBucket) {
+      let added = 0;
+      incomingBucket.forEach(entry => {
+        const didAdd = addBankEntry(entry, targetBucket, { skipRender: true });
+        if (didAdd) added += 1;
+      });
+      return added;
+    }
+
+    function importBankData(data) {
+      const incomingPlayers = Array.isArray(data?.players) ? data.players : [];
+      const incomingTeams = Array.isArray(data?.teams) ? data.teams : [];
+      const addedPlayers = mergeBankBucket("players", incomingPlayers);
+      const addedTeams = mergeBankBucket("teams", incomingTeams);
+      const totalAdded = addedPlayers + addedTeams;
+      renderBank();
+      if (totalAdded) {
+        setBankStatus(`Imported ${totalAdded} new name${totalAdded === 1 ? "" : "s"} (players: ${addedPlayers}, teams: ${addedTeams}).`, true);
+      } else {
+        setBankStatus("Import complete. No new names were added.", true);
+      }
+    }
+
+    function exportBankData() {
+      const payload = {
+        players: bankState.players.slice(),
+        teams: bankState.teams.slice()
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const timestamp = new Date().toISOString().slice(0, 10);
+      link.href = url;
+      link.download = `dbl-used-bank-${timestamp}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setBankStatus("Exported used bank as a JSON file.", true);
     }
 
     [
@@ -1851,6 +1956,31 @@
         }
       });
     });
+
+    if (btnExportBank) {
+      btnExportBank.addEventListener("click", exportBankData);
+    }
+
+    if (bankImportFile) {
+      bankImportFile.addEventListener("change", (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const parsed = JSON.parse(reader.result);
+            importBankData(parsed);
+          } catch (e) {
+            setBankStatus("Import failed. Please select a valid JSON export.", false);
+          }
+        };
+        reader.onerror = () => {
+          setBankStatus("Import failed. Unable to read the file.", false);
+        };
+        reader.readAsText(file);
+        bankImportFile.value = "";
+      });
+    }
 
     renderBank();
 
@@ -2045,6 +2175,30 @@
       fightEraLabelEl.textContent = `Era: ${bucket.label}`;
     }
 
+    function captureMainPageNames() {
+      const team = teamInput.value.trim();
+      const team2 = team2Input.value.trim();
+      const star = starInput.value.trim();
+      const star2 = star2Input.value.trim();
+      let didAdd = false;
+
+      [team, team2].forEach((entry) => {
+        if (addBankEntry(entry, "teams", { skipRender: true })) {
+          didAdd = true;
+        }
+      });
+
+      [star, star2].forEach((entry) => {
+        if (addBankEntry(entry, "players", { skipRender: true })) {
+          didAdd = true;
+        }
+      });
+
+      if (didAdd) {
+        renderBank();
+      }
+    }
+
     function renderSingleEvent() {
       const year = yearInput.value.trim();
       const team = teamInput.value.trim();
@@ -2055,6 +2209,8 @@
       const tone = toneSelect.value;
       const types = getSelectedTypes();
       const pool = getPool(year, tone, types);
+
+      captureMainPageNames();
 
       if (!pool.length) {
         resultsEl.innerHTML = `
@@ -2085,6 +2241,8 @@
       const tone = toneSelect.value;
       const types = getSelectedTypes();
       const pool = getPool(year, tone, types);
+
+      captureMainPageNames();
 
       if (!pool.length) {
         resultsEl.innerHTML = `
