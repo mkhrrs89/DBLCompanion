@@ -1761,6 +1761,7 @@
           type: "drama",
           tone: "generic",
           title: "Film Session Audio Leak",
+          minYear: 2000,
           body:
             "Minutes after practice, a short audio clip from {{team}}’s film session appears online, capturing {{star}} calling out {{team2}}’s pet set. {{team2}}’s staff fires back by hinting at counters, and league officials investigate how the clip got out before both sides settle the noise on the court.",
           tags: ["leaks", "gamesmanship", "matchup hype"]
@@ -1883,8 +1884,11 @@
       // Fallback
       pushEvents("generic");
 
-      return pools.filter(ev => allowedTypes.includes(ev.type) &&
-        (tone === "generic" || ev.tone === tone || ev.tone === "generic"));
+      return pools.filter(ev => {
+        const withinYearRange = (!ev.minYear || year >= ev.minYear) && (!ev.maxYear || year <= ev.maxYear);
+        return allowedTypes.includes(ev.type) && withinYearRange &&
+          (tone === "generic" || ev.tone === tone || ev.tone === "generic");
+      });
     }
 
     function getFightPool(year) {
